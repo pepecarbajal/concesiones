@@ -87,6 +87,10 @@ function App() {
         setPanelVisible(true);
         setFiltersVisible(true);
       }
+      // Informar a Mapbox que el contenedor cambio de tamano
+      setTimeout(() => {
+        if (map.current) map.current.resize();
+      }, 100);
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -530,20 +534,27 @@ function App() {
 
   // Toggle para panel de informacion en movil
   const togglePanel = () => {
-    setPanelVisible(!panelVisible);
-    if (!panelVisible && isMobile) {
-      // Si se abre el panel, cerrar filtros
+    const next = !panelVisible;
+    setPanelVisible(next);
+    if (next && isMobile) {
       setFiltersVisible(false);
     }
+    // Redimensionar el mapa despues de la transicion
+    setTimeout(() => {
+      if (map.current) map.current.resize();
+    }, 400);
   };
 
   // Toggle para filtros en movil
   const toggleFilters = () => {
-    setFiltersVisible(!filtersVisible);
-    if (!filtersVisible && isMobile) {
-      // Si se abren filtros, cerrar panel
+    const next = !filtersVisible;
+    setFiltersVisible(next);
+    if (next && isMobile) {
       setPanelVisible(false);
     }
+    setTimeout(() => {
+      if (map.current) map.current.resize();
+    }, 400);
   };
 
   return (
