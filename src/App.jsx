@@ -792,25 +792,25 @@ function App() {
                 <StatCard 
                   icon="chart"
                   label="Total" 
-                  value={concesiones.length}
+                  value={filteredConcesiones.length}
                   color="color-purple"
                 />
                 <StatCard 
                   icon="building"
                   label="Municipios" 
-                  value={municipios.length}
+                  value={[...new Set(filteredConcesiones.map(c => c.municipio))].length}
                   color="color-violet"
                 />
                 <StatCard 
                   icon="check"
                   label="Vigentes" 
-                  value={concesiones.filter(c => c.estado === 'Vigente').length}
+                  value={filteredConcesiones.filter(c => c.estado === 'Vigente').length}
                   color="color-green"
                 />
                 <StatCard 
                   icon="area"
                   label="Superficie" 
-                  value={`${concesiones.reduce((sum, c) => sum + parseFloat(c.superficie || 0), 0).toFixed(0)} ha`}
+                  value={`${filteredConcesiones.reduce((sum, c) => sum + parseFloat(c.superficie || 0), 0).toFixed(0)} ha`}
                   color="color-orange"
                   small
                 />
