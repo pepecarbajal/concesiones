@@ -46,10 +46,13 @@ html, body {
   cursor: pointer;
   width: 24px;
   height: 24px;
-  transition: transform 0.2s;
 }
 
-.custom-marker-concesion:hover {
+.custom-marker-concesion svg {
+  transition: transform 0.2s ease;
+}
+
+.custom-marker-concesion:hover svg {
   transform: scale(1.3);
 }
 
