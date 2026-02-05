@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import './index.css';
 import concesionesData from './concesiones.json';
 
 // Token de Mapbox
@@ -10,7 +11,6 @@ mapboxgl.accessToken = 'pk.eyJ1IjoicGVwZWxlcGV3IiwiYSI6ImNtbDhjNGsxNzA2aGszZ3B1N
 const dmsToDecimal = (dms) => {
   if (!dms) return null;
   
-  // Ejemplo: "17°3′53.190″N" o "99°44′29.440″W"
   const regex = /(\d+)°(\d+)′([\d.]+)″([NSEW])/;
   const match = dms.match(regex);
   
@@ -23,7 +23,6 @@ const dmsToDecimal = (dms) => {
   
   let decimal = degrees + minutes / 60 + seconds / 3600;
   
-  // Si es Sur o Oeste, el valor es negativo
   if (direction === 'S' || direction === 'W') {
     decimal = -decimal;
   }
@@ -41,10 +40,22 @@ const processConcesiones = (data) => {
       ...concesion,
       coords: lng && lat ? [lng, lat] : null
     };
-  }).filter(c => c.coords !== null); // Filtrar concesiones sin coordenadas válidas
+  }).filter(c => c.coords !== null);
 };
 
-// Regiones de Guerrero
+// Definir regiones y sus municipios
+const regionesMunicipios = {
+  'Acapulco': ['Acapulco de Juárez'],
+  'Norte': ['Cocula', 'Iguala de la Independencia', 'Taxco de Alarcón', 'Teloloapan', 'Buenavista de Cuéllar', 'Tepecoacuilco de Trujano', 'Ixcateopan de Cuauhtémoc'],
+  'Centro': ['Chilpancingo de los Bravo', 'Eduardo Neri', 'Zitlala', 'Tixtla de Guerrero', 'Mochitlán', 'Quechultenango'],
+  'Montaña': ['Tlapa de Comonfort', 'Metlatónoc', 'Cochoapa el Grande', 'Iliatenco', 'Alpoyeca'],
+  'Costa Chica': ['Ometepec', 'Cuajinicuilapa', 'Azoyú', 'San Marcos', 'Copala', 'Marquelia', 'Florencio Villarreal'],
+  'Costa Grande': ['Zihuatanejo de Azueta', 'Petatlán', 'Tecpán de Galeana', 'Atoyac de Álvarez', 'Coyuca de Benítez', 'La Unión de Isidoro Montes de Oca'],
+  'Tierra Caliente': ['Tlalchapa', 'Arcelia', 'Tlapehuala', 'San Miguel Totolapan', 'Pungarabato', 'Ajuchitlán del Progreso', 'Coyuca de Catalán'],
+  'Sierra': ['General Heliodoro Castillo', 'Leonardo Bravo']
+};
+
+// Regiones de Guerrero con coordenadas
 const regiones = [
   { nombre: 'Acapulco', coords: [-99.8901, 16.8531], zoom: 11 },
   { nombre: 'Norte', coords: [-99.5398, 18.3444], zoom: 9 },
@@ -52,28 +63,41 @@ const regiones = [
   { nombre: 'Montaña', coords: [-98.5761, 17.5453], zoom: 9 },
   { nombre: 'Costa Chica', coords: [-98.4102, 16.6850], zoom: 9 },
   { nombre: 'Costa Grande', coords: [-101.5518, 17.6413], zoom: 9 },
-  { nombre: 'Tierra Caliente', coords: [-100.5, 18.2], zoom: 9 }
+  { nombre: 'Tierra Caliente', coords: [-100.5, 18.2], zoom: 9 },
+  { nombre: 'Sierra', coords: [-99.85, 17.65], zoom: 10 }
 ];
+
+// Función para obtener la región de un municipio
+const getRegionFromMunicipio = (municipio) => {
+  for (const [region, municipios] of Object.entries(regionesMunicipios)) {
+    if (municipios.includes(municipio)) {
+      return region;
+    }
+  }
+  return null;
+};
 
 function App() {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markers = useRef([]);
+  const coordinatesPopup = useRef(null);
   
   const [concesiones, setConcesiones] = useState([]);
   const [municipios, setMunicipios] = useState([]);
-  const [selectedMunicipio, setSelectedMunicipio] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('');
+  const [selectedMunicipio, setSelectedMunicipio] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedConcesion, setSelectedConcesion] = useState(null);
   const [filteredConcesiones, setFilteredConcesiones] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [yearFilter, setYearFilter] = useState('');
 
   // Cargar concesiones al montar el componente
   useEffect(() => {
     const processed = processConcesiones(concesionesData);
     setConcesiones(processed);
     
-    // Extraer municipios únicos
     const uniqueMunicipios = [...new Set(processed.map(c => c.municipio))].sort();
     setMunicipios(uniqueMunicipios);
   }, []);
@@ -82,9 +106,41 @@ function App() {
   useEffect(() => {
     let filtered = [...concesiones];
     
+    // Filtrar por región
+    if (selectedRegion) {
+      // Primero intentar usar el campo region del JSON si existe
+      filtered = filtered.filter(c => {
+        if (c.region) {
+          return c.region === selectedRegion;
+        }
+        // Si no existe el campo region, usar el mapeo de municipios
+        const municipiosRegion = regionesMunicipios[selectedRegion] || [];
+        return municipiosRegion.includes(c.municipio);
+      });
+    }
+    
     // Filtrar por municipio
     if (selectedMunicipio) {
       filtered = filtered.filter(c => c.municipio === selectedMunicipio);
+    }
+    
+    // Filtrar por año (usando fecha_inicio)
+    if (yearFilter) {
+      filtered = filtered.filter(c => {
+        if (c.fecha_inicio) {
+          // Manejar formato DD/MM/YYYY
+          const parts = c.fecha_inicio.split('/');
+          if (parts.length === 3) {
+            let year = parts[2];
+            // Si el año es de 2 dígitos, convertir a 4 dígitos
+            if (year.length === 2) {
+              year = parseInt(year) > 50 ? '19' + year : '20' + year;
+            }
+            return year === yearFilter;
+          }
+        }
+        return false;
+      });
     }
     
     // Filtrar por búsqueda
@@ -94,13 +150,13 @@ function App() {
         c.nombre_lote?.toLowerCase().includes(term) ||
         c.titular?.toLowerCase().includes(term) ||
         c.municipio?.toLowerCase().includes(term) ||
-        c.titulo?.toLowerCase().includes(term) ||
-        c.fid?.toLowerCase().includes(term)
+        c.titulo?.toString().toLowerCase().includes(term)
       );
     }
     
     setFilteredConcesiones(filtered);
-  }, [selectedMunicipio, searchTerm, concesiones]);
+    setCurrentIndex(0);
+  }, [selectedRegion, selectedMunicipio, searchTerm, concesiones, yearFilter]);
 
   // Inicializar el mapa
   useEffect(() => {
@@ -120,13 +176,10 @@ function App() {
   useEffect(() => {
     if (!map.current) return;
 
-    // Remover marcadores existentes
     markers.current.forEach(marker => marker.remove());
     markers.current = [];
 
-    // Agregar nuevos marcadores
     filteredConcesiones.forEach(concesion => {
-      // Crear elemento del marcador
       const el = document.createElement('div');
       el.className = 'custom-marker-concesion';
       el.innerHTML = `
@@ -144,23 +197,26 @@ function App() {
               </feMerge>
             </filter>
           </defs>
-          <circle cx="12" cy="10" r="8" fill="${concesion.Estado === 'Vigente' ? '#FF4444' : '#999999'}" filter="url(#shadow)"/>
-          <circle cx="12" cy="10" r="6.5" fill="${concesion.Estado === 'Vigente' ? '#FF6666' : '#AAAAAA'}"/>
+          <circle cx="12" cy="10" r="8" fill="${concesion.estado === 'Vigente' ? '#FF4444' : '#999999'}" filter="url(#shadow)"/>
+          <circle cx="12" cy="10" r="6.5" fill="${concesion.estado === 'Vigente' ? '#FF6666' : '#AAAAAA'}"/>
           <circle cx="12" cy="10" r="3" fill="white"/>
-          <path d="M12 18 L10 23 L12 21 L14 23 Z" fill="${concesion.Estado === 'Vigente' ? '#CC0000' : '#666666'}" filter="url(#shadow)"/>
-          <circle cx="12" cy="10" r="1.5" fill="${concesion.Estado === 'Vigente' ? '#FF4444' : '#999999'}"/>
+          <path d="M12 18 L10 23 L12 21 L14 23 Z" fill="${concesion.estado === 'Vigente' ? '#CC0000' : '#666666'}" filter="url(#shadow)"/>
+          <circle cx="12" cy="10" r="1.5" fill="${concesion.estado === 'Vigente' ? '#FF4444' : '#999999'}"/>
         </svg>
       `;
-      el.style.cursor = 'pointer';
-      el.style.width = '24px';
-      el.style.height = '24px';
 
       const marker = new mapboxgl.Marker(el)
         .setLngLat(concesion.coords)
         .addTo(map.current);
 
       el.addEventListener('click', () => {
+        const index = filteredConcesiones.findIndex(c => c.titulo === concesion.titulo);
+        setCurrentIndex(index);
         setSelectedConcesion(concesion);
+        
+        // Mostrar popup de coordenadas
+        showCoordinatesPopup(concesion);
+        
         map.current.flyTo({
           center: concesion.coords,
           zoom: 14,
@@ -171,37 +227,63 @@ function App() {
       markers.current.push(marker);
     });
 
-    // Ajustar el mapa para mostrar todos los marcadores
-    if (filteredConcesiones.length > 0 && !selectedMunicipio && !selectedRegion) {
+    // NO ajustar automáticamente el mapa cuando hay filtros activos
+    if (filteredConcesiones.length > 0 && !selectedMunicipio && !selectedRegion && searchTerm.length === 0) {
       const bounds = new mapboxgl.LngLatBounds();
       filteredConcesiones.forEach(c => bounds.extend(c.coords));
       map.current.fitBounds(bounds, { padding: 100, maxZoom: 12 });
     }
   }, [filteredConcesiones]);
 
-  // Manejar cambio de municipio
-  const handleMunicipioChange = (e) => {
-    const municipio = e.target.value;
-    setSelectedMunicipio(municipio);
-    setSelectedRegion('');
-    
-    if (municipio && map.current) {
-      // Encontrar concesiones de ese municipio
-      const concesionesMunicipio = concesiones.filter(c => c.municipio === municipio);
-      
-      if (concesionesMunicipio.length > 0) {
-        const bounds = new mapboxgl.LngLatBounds();
-        concesionesMunicipio.forEach(c => bounds.extend(c.coords));
-        map.current.fitBounds(bounds, { padding: 80, maxZoom: 13 });
-      }
-    } else if (!municipio && map.current) {
-      // Volver a la vista general
-      map.current.flyTo({
-        center: [-99.5008, 17.5509],
-        zoom: 8,
-        duration: 2000
-      });
+  // Mostrar popup de coordenadas flotante
+  const showCoordinatesPopup = (concesion) => {
+    // Remover popup anterior si existe
+    if (coordinatesPopup.current) {
+      coordinatesPopup.current.remove();
     }
+
+    // Crear nuevo popup
+    coordinatesPopup.current = new mapboxgl.Popup({
+      closeButton: true,
+      closeOnClick: false,
+      offset: 25,
+      className: 'coordinates-popup'
+    })
+      .setLngLat(concesion.coords)
+      .setHTML(`
+        <div style="
+          padding: 12px;
+          background: white;
+          border-radius: 8px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+          min-width: 250px;
+        ">
+          <div style="
+            font-size: 13px;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #667eea;
+          ">
+            📍 ${concesion.nombre_lote}
+          </div>
+          <div style="font-size: 12px; color: #6B7280; margin-bottom: 10px;">
+            <strong>Coordenadas DMS:</strong>
+          </div>
+          <div style="font-size: 11px; color: #374151; line-height: 1.6; margin-bottom: 8px;">
+            <div>Latitud: ${concesion.latitud}</div>
+            <div>Longitud: ${concesion.longitud}</div>
+          </div>
+          <div style="font-size: 12px; color: #6B7280; margin-bottom: 6px;">
+            <strong>Coordenadas Decimales:</strong>
+          </div>
+          <div style="font-size: 11px; color: #374151; line-height: 1.6;">
+            <div>${concesion.coords[1].toFixed(6)}, ${concesion.coords[0].toFixed(6)}</div>
+          </div>
+        </div>
+      `)
+      .addTo(map.current);
   };
 
   // Manejar cambio de región
@@ -209,6 +291,8 @@ function App() {
     const region = e.target.value;
     setSelectedRegion(region);
     setSelectedMunicipio('');
+    setSelectedConcesion(null);
+    setSearchTerm('');
     
     if (region) {
       const selected = regiones.find(r => r.nombre === region);
@@ -219,6 +303,29 @@ function App() {
           duration: 2000
         });
       }
+    } else {
+      map.current.flyTo({
+        center: [-99.5008, 17.5509],
+        zoom: 8,
+        duration: 2000
+      });
+    }
+  };
+
+  // Manejar cambio de municipio
+  const handleMunicipioChange = (e) => {
+    const municipio = e.target.value;
+    setSelectedMunicipio(municipio);
+    setSelectedConcesion(null);
+    
+    if (municipio && map.current) {
+      const concesionesMunicipio = concesiones.filter(c => c.municipio === municipio);
+      
+      if (concesionesMunicipio.length > 0) {
+        const bounds = new mapboxgl.LngLatBounds();
+        concesionesMunicipio.forEach(c => bounds.extend(c.coords));
+        map.current.fitBounds(bounds, { padding: 80, maxZoom: 13 });
+      }
     }
   };
 
@@ -226,12 +333,19 @@ function App() {
   const handleSearch = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
+    setSelectedConcesion(null);
   };
 
   // Seleccionar concesión de búsqueda
   const handleConcesionClick = (concesion) => {
+    const index = filteredConcesiones.findIndex(c => c.titulo === concesion.titulo);
+    setCurrentIndex(index);
     setSelectedConcesion(concesion);
     
+    // Mostrar popup de coordenadas
+    showCoordinatesPopup(concesion);
+    
+    // Solo hacer zoom, NO ajustar bounds
     if (map.current) {
       map.current.flyTo({
         center: concesion.coords,
@@ -241,565 +355,487 @@ function App() {
     }
   };
 
-  const formatDate = (date) => {
-    if (!date) return 'N/A';
-    return date;
+  // Navegar a la concesión anterior
+  const handlePrevious = () => {
+    if (filteredConcesiones.length === 0) return;
+    
+    const newIndex = currentIndex > 0 ? currentIndex - 1 : filteredConcesiones.length - 1;
+    setCurrentIndex(newIndex);
+    const concesion = filteredConcesiones[newIndex];
+    setSelectedConcesion(concesion);
+    
+    // Mostrar popup de coordenadas
+    showCoordinatesPopup(concesion);
+    
+    if (map.current) {
+      map.current.flyTo({
+        center: concesion.coords,
+        zoom: 14,
+        duration: 1000
+      });
+    }
   };
 
-  // Función para generar URL de descarga de tarjeta RPM
-  const getRPMCardUrl = (titulo) => {
-    return `https://tarjetarpm.economia.gob.mx/tarjeta.mineria/obtiene.tarjetaPDF?notitulo=${titulo}`;
+  // Navegar a la concesión siguiente
+  const handleNext = () => {
+    if (filteredConcesiones.length === 0) return;
+    
+    const newIndex = currentIndex < filteredConcesiones.length - 1 ? currentIndex + 1 : 0;
+    setCurrentIndex(newIndex);
+    const concesion = filteredConcesiones[newIndex];
+    setSelectedConcesion(concesion);
+    
+    // Mostrar popup de coordenadas
+    showCoordinatesPopup(concesion);
+    
+    if (map.current) {
+      map.current.flyTo({
+        center: concesion.coords,
+        zoom: 14,
+        duration: 1000
+      });
+    }
   };
 
-  // Función para descargar tarjeta RPM
-  const downloadRPMCard = (titulo, nombreLote) => {
-    const url = getRPMCardUrl(titulo);
-    const link = document.createElement('a');
-    link.href = url;
-    link.target = '_blank';
-    link.download = `Tarjeta_RPM_${titulo}_${nombreLote}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  // Obtener municipios filtrados por región
+  const getMunicipiosFiltrados = () => {
+    if (!selectedRegion) {
+      return municipios;
+    }
+    return regionesMunicipios[selectedRegion] || [];
+  };
+
+  // Función para descargar Excel con las concesiones filtradas
+  const handleDownloadExcel = async () => {
+    try {
+      // Importar la librería xlsx dinámicamente
+      const XLSX = await import('xlsx');
+      
+      // Preparar datos para el Excel
+      const dataToExport = filteredConcesiones.map(c => ({
+        'No.': c['No.'] || '',
+        'Nombre del Lote': c.nombre_lote || '',
+        'Título': c.titulo || '',
+        'Fecha de Expedición': c.fecha_expedicion || '',
+        'Fecha de Inicio': c.fecha_inicio || '',
+        'Fecha de Fin': c.fecha_fin || '',
+        'Superficie (ha)': c.superficie || '',
+        'Titular': c.titular || '',
+        'Municipio': c.municipio || '',
+        'Región': c.region || getRegionFromMunicipio(c.municipio) || '',
+        'Latitud': c.latitud || '',
+        'Longitud': c.longitud || '',
+        'Coordenadas Decimales': c.coords ? `${c.coords[1].toFixed(6)}, ${c.coords[0].toFixed(6)}` : '',
+        'Estado': c.estado || ''
+      }));
+      
+      // Crear el libro de trabajo
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(dataToExport);
+      
+      // Ajustar anchos de columnas
+      const colWidths = [
+        { wch: 5 },   // No.
+        { wch: 25 },  // Nombre del Lote
+        { wch: 12 },  // Título
+        { wch: 18 },  // Fecha de Expedición
+        { wch: 18 },  // Fecha de Inicio
+        { wch: 18 },  // Fecha de Fin
+        { wch: 15 },  // Superficie
+        { wch: 35 },  // Titular
+        { wch: 25 },  // Municipio
+        { wch: 18 },  // Región
+        { wch: 18 },  // Latitud
+        { wch: 18 },  // Longitud
+        { wch: 25 },  // Coordenadas Decimales
+        { wch: 12 }   // Estado
+      ];
+      ws['!cols'] = colWidths;
+      
+      // Agregar la hoja al libro
+      XLSX.utils.book_append_sheet(wb, ws, 'Concesiones');
+      
+      // Generar el nombre del archivo
+      let fileName = 'Concesiones_Mineras';
+      if (selectedRegion) fileName += `_${selectedRegion}`;
+      if (selectedMunicipio) fileName += `_${selectedMunicipio}`;
+      if (yearFilter) fileName += `_${yearFilter}`;
+      fileName += `.xlsx`;
+      
+      // Descargar el archivo
+      XLSX.writeFile(wb, fileName);
+    } catch (error) {
+      console.error('Error al generar el archivo Excel:', error);
+      alert('Hubo un error al generar el archivo Excel. Por favor intente nuevamente.');
+    }
+  };
+
+  // Calcular estadísticas
+  const calcularEstadisticas = () => {
+    let data = [...concesiones];
+    
+    // Aplicar filtro de año si existe (usando fecha_inicio)
+    if (yearFilter) {
+      data = data.filter(c => {
+        if (c.fecha_inicio) {
+          const parts = c.fecha_inicio.split('/');
+          if (parts.length === 3) {
+            let year = parts[2];
+            if (year.length === 2) {
+              year = parseInt(year) > 50 ? '19' + year : '20' + year;
+            }
+            return year === yearFilter;
+          }
+        }
+        return false;
+      });
+    }
+    
+    // Estadísticas por municipio
+    const porMunicipio = {};
+    data.forEach(c => {
+      if (!porMunicipio[c.municipio]) {
+        porMunicipio[c.municipio] = {
+          total: 0,
+          vigentes: 0,
+          superficie: 0,
+          titulares: new Set()
+        };
+      }
+      porMunicipio[c.municipio].total++;
+      if (c.estado === 'Vigente') porMunicipio[c.municipio].vigentes++;
+      porMunicipio[c.municipio].superficie += parseFloat(c.superficie || 0);
+      porMunicipio[c.municipio].titulares.add(c.titular);
+    });
+
+    // Estadísticas por titular
+    const porTitular = {};
+    data.forEach(c => {
+      if (!porTitular[c.titular]) {
+        porTitular[c.titular] = {
+          total: 0,
+          vigentes: 0,
+          superficie: 0,
+          municipios: new Set()
+        };
+      }
+      porTitular[c.titular].total++;
+      if (c.estado === 'Vigente') porTitular[c.titular].vigentes++;
+      porTitular[c.titular].superficie += parseFloat(c.superficie || 0);
+      porTitular[c.titular].municipios.add(c.municipio);
+    });
+
+    // Estadísticas por año (usando fecha_inicio)
+    const porAño = {};
+    data.forEach(c => {
+      if (c.fecha_inicio) {
+        const parts = c.fecha_inicio.split('/');
+        if (parts.length === 3) {
+          let year = parts[2];
+          if (year.length === 2) {
+            year = parseInt(year) > 50 ? '19' + year : '20' + year;
+          }
+          if (!porAño[year]) {
+            porAño[year] = {
+              total: 0,
+              vigentes: 0,
+              superficie: 0
+            };
+          }
+          porAño[year].total++;
+          if (c.estado === 'Vigente') porAño[year].vigentes++;
+          porAño[year].superficie += parseFloat(c.superficie || 0);
+        }
+      }
+    });
+
+    return { porMunicipio, porTitular, porAño };
+  };
+
+  // Obtener años únicos
+  const getYearsUnicos = () => {
+    const years = new Set();
+    concesiones.forEach(c => {
+      if (c.fecha_inicio) {
+        const parts = c.fecha_inicio.split('/');
+        if (parts.length === 3) {
+          let year = parts[2];
+          if (year.length === 2) {
+            year = parseInt(year) > 50 ? '19' + year : '20' + year;
+          }
+          years.add(year);
+        }
+      }
+    });
+    return Array.from(years).sort().reverse();
   };
 
   return (
-    <div style={{ 
-      width: '100vw', 
-      height: '100vh', 
-      position: 'relative',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
-    }}>
-      {/* Contenedor del mapa */}
-      <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
+    <div className="app-container">
+      {/* Mapa de fondo */}
+      <div ref={mapContainer} className="map-container" />
 
-      {/* Barra superior con controles */}
-      <div style={{
-        position: 'absolute',
-        top: '20px',
-        left: '20px',
-        right: '20px',
-        display: 'flex',
-        gap: '15px',
-        zIndex: 1,
-        flexWrap: 'wrap'
-      }}>
-        {/* Selector de municipio */}
-        <select
-          value={selectedMunicipio}
-          onChange={handleMunicipioChange}
-          style={{
-            padding: '12px 15px',
-            fontSize: '14px',
-            border: 'none',
-            borderRadius: '8px',
-            backgroundColor: 'white',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            cursor: 'pointer',
-            outline: 'none',
-            minWidth: '200px'
-          }}
-        >
-          <option value="">Todos los Municipios ({municipios.length})</option>
-          {municipios.map(m => {
-            const count = concesiones.filter(c => c.municipio === m).length;
-            return (
-              <option key={m} value={m}>{m} ({count})</option>
-            );
-          })}
-        </select>
+      {/* Título elegante de filtros */}
+      <div className="filters-title-container">
+        <div className="filters-title">
+          <span className="filters-title-icon">🔍</span>
+          <span className="filters-title-text">Filtros de Búsqueda</span>
+        </div>
+      </div>
 
-        {/* Selector de región */}
+      {/* Controles flotantes superiores */}
+      <div className="filters-controls">
+        {/* Filtro por Región */}
         <select
           value={selectedRegion}
           onChange={handleRegionChange}
-          style={{
-            padding: '12px 15px',
-            fontSize: '14px',
-            border: 'none',
-            borderRadius: '8px',
-            backgroundColor: 'white',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            cursor: 'pointer',
-            outline: 'none',
-            minWidth: '180px'
-          }}
+          className="filter-select"
         >
-          <option value="">Seleccionar Región</option>
-          {regiones.map(r => (
-            <option key={r.nombre} value={r.nombre}>{r.nombre}</option>
+          <option value="">🌎 Todas las regiones</option>
+          {regiones.map(region => (
+            <option key={region.nombre} value={region.nombre}>
+              {region.nombre}
+            </option>
+          ))}
+        </select>
+
+        {/* Filtro por Municipio */}
+        <select
+          value={selectedMunicipio}
+          onChange={handleMunicipioChange}
+          className="filter-select filter-select-municipio"
+        >
+          <option value="">🏙️ Todos los municipios</option>
+          {getMunicipiosFiltrados().map(municipio => (
+            <option key={municipio} value={municipio}>
+              {municipio}
+            </option>
+          ))}
+        </select>
+
+        {/* Filtro por Año */}
+        <select
+          value={yearFilter}
+          onChange={(e) => setYearFilter(e.target.value)}
+          className="filter-select filter-select-year"
+        >
+          <option value="">📅 Todos los años</option>
+          {getYearsUnicos().map(year => (
+            <option key={year} value={year}>
+              {year}
+            </option>
           ))}
         </select>
 
         {/* Barra de búsqueda */}
-        <div style={{ position: 'relative', flex: '1', minWidth: '250px', maxWidth: '400px' }}>
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={handleSearch}
-            placeholder="Buscar por nombre, titular, título..."
-            style={{
-              width: '100%',
-              padding: '12px 15px',
-              fontSize: '14px',
-              border: 'none',
-              borderRadius: '8px',
-              backgroundColor: 'white',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-              outline: 'none'
-            }}
-          />
-          
-          {/* Resultados de búsqueda */}
-          {searchTerm.length > 2 && filteredConcesiones.length > 0 && (
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              right: 0,
-              marginTop: '5px',
-              backgroundColor: 'white',
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-              maxHeight: '400px',
-              overflowY: 'auto',
-              zIndex: 10
-            }}>
-              {filteredConcesiones.slice(0, 10).map(concesion => (
-                <div
-                  key={concesion.fid}
-                  onClick={() => {
-                    handleConcesionClick(concesion);
-                    setSearchTerm('');
-                  }}
-                  style={{
-                    padding: '12px 15px',
-                    cursor: 'pointer',
-                    borderBottom: '1px solid #f0f0f0',
-                    transition: 'background-color 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
-                >
-                  <div style={{ fontWeight: '600', fontSize: '14px' }}>
-                    {concesion.nombre_lote}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
-                    {concesion.titular}
-                  </div>
-                  <div style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>
-                    {concesion.municipio} • Título: {concesion.titulo}
-                  </div>
-                </div>
-              ))}
-              {filteredConcesiones.length > 10 && (
-                <div style={{
-                  padding: '10px 15px',
-                  fontSize: '12px',
-                  color: '#666',
-                  textAlign: 'center',
-                  backgroundColor: '#f9f9f9'
-                }}>
-                  Mostrando 10 de {filteredConcesiones.length} resultados
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+        <input
+          type="text"
+          placeholder="🔍 Buscar concesión..."
+          value={searchTerm}
+          onChange={handleSearch}
+          className="search-input"
+        />
 
-        {/* Contador de concesiones */}
-        <div style={{
-          padding: '12px 20px',
-          fontSize: '14px',
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-          fontWeight: '600',
-          color: '#1976d2',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-          <span style={{ fontSize: '18px' }}>📍</span>
-          {filteredConcesiones.length} concesiones
-        </div>
+        {/* Botón de descarga Excel */}
+        <button
+          onClick={handleDownloadExcel}
+          className="btn-stats"
+        >
+          📥 Descargar Excel
+        </button>
       </div>
 
-      {/* Panel lateral flotante */}
-      <div style={{
-        position: 'absolute',
-        left: '20px',
-        top: '120px',
-        bottom: '20px',
-        width: '420px',
-        backgroundColor: 'white',
-        borderRadius: '16px',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-        overflow: 'hidden',
-        zIndex: 1,
-        border: '1px solid rgba(0,0,0,0.06)'
-      }}>
+      {/* Panel lateral izquierdo */}
+      <div className="side-panel">
         {selectedConcesion ? (
           // Información de concesión seleccionada
-          <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            {/* Header con gradiente */}
-            <div style={{
-              background: 'linear-gradient(135deg, #020202 0%, #2d0555 100%)',
-              padding: '24px',
-              color: 'white'
-            }}>
+          <div className="side-panel-content">
+            {/* Header con navegación */}
+            <div className="panel-header">
+              {/* Botones de navegación */}
+              <div className="navigation-controls">
+                <button
+                  onClick={handlePrevious}
+                  disabled={filteredConcesiones.length === 0}
+                  className="btn-nav"
+                >
+                  ← Anterior
+                </button>
+                
+                <span className="navigation-counter">
+                  {currentIndex + 1} / {filteredConcesiones.length}
+                </span>
+                
+                <button
+                  onClick={handleNext}
+                  disabled={filteredConcesiones.length === 0}
+                  className="btn-nav"
+                >
+                  Siguiente →
+                </button>
+              </div>
+
               <button
                 onClick={() => setSelectedConcesion(null)}
-                style={{
-                  marginBottom: '16px',
-                  padding: '8px 16px',
-                  fontSize: '13px',
-                  backgroundColor: 'rgba(255,255,255,0.2)',
-                  border: 'none',
-                  borderRadius: '20px',
-                  cursor: 'pointer',
-                  fontWeight: '500',
-                  color: 'white',
-                  backdropFilter: 'blur(10px)',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.3)'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.2)'}
+                className="btn-back"
               >
                 ← Volver
               </button>
               
-              <h2 style={{ 
-                margin: '0 0 12px 0', 
-                fontSize: '24px',
-                fontWeight: '700',
-                lineHeight: '1.2',
-                textShadow: '0 2px 4px rgba(0,0,0,0.1)'
-              }}>
+              <h2 className="concesion-header-title">
                 {selectedConcesion.nombre_lote}
               </h2>
               
-              <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 14px',
-                backgroundColor: selectedConcesion.Estado === 'Vigente' 
-                  ? 'rgba(76, 175, 80, 0.9)' 
-                  : 'rgba(244, 67, 54, 0.9)',
-                borderRadius: '20px',
-                fontSize: '13px',
-                fontWeight: '600',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <span style={{ fontSize: '10px' }}>●</span>
-                {selectedConcesion.Estado || 'N/A'}
+              <div className={`status-badge ${selectedConcesion.estado === 'Vigente' ? 'vigente' : 'no-vigente'}`}>
+                <span className="status-dot">●</span>
+                {selectedConcesion.estado || 'N/A'}
               </div>
             </div>
 
             {/* Contenido con scroll */}
-            <div style={{
-              flex: 1,
-              overflowY: 'auto',
-              padding: '24px'
-            }}>
-              {/* Información principal */}
-              <div style={{ marginBottom: '24px' }}>
-                <h3 style={{ 
-                  fontSize: '12px', 
-                  fontWeight: '700',
-                  color: '#9CA3AF',
-                  marginBottom: '16px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '1px'
-                }}>
-                  Información General
-                </h3>
-                
-                <div style={{ 
-                  display: 'grid', 
-                  gap: '16px',
-                  backgroundColor: '#F9FAFB',
-                  padding: '16px',
-                  borderRadius: '12px',
-                  border: '1px solid #E5E7EB'
-                }}>
-                  <InfoRowModern label="Título" value={selectedConcesion.titulo} />
-                  <InfoRowModern label="FID" value={selectedConcesion.fid} />
-                  <InfoRowModern label="Municipio" value={selectedConcesion.municipio} />
-                  <InfoRowModern label="Superficie" value={`${selectedConcesion.superficie} ha`} />
+            <div className="scrollable-content">
+              <div className="info-rows">
+                <div className="info-row">
+                  <div className="info-label">Titular(es)</div>
+                  <div className="info-value">
+                    {selectedConcesion.titular ? (
+                      selectedConcesion.titular.includes('|') ? (
+                        <ul style={{ margin: 0, paddingLeft: '20px', listStyleType: 'disc' }}>
+                          {selectedConcesion.titular.split('|').map((titular, idx) => (
+                            <li key={idx} style={{ marginBottom: '4px' }}>{titular.trim()}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        selectedConcesion.titular
+                      )
+                    ) : 'N/A'}
+                  </div>
                 </div>
-              </div>
-
-              {/* Titular */}
-              <div style={{ marginBottom: '24px' }}>
-                <h3 style={{ 
-                  fontSize: '12px', 
-                  fontWeight: '700',
-                  color: '#9CA3AF',
-                  marginBottom: '12px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '1px'
-                }}>
-                  Titular
-                </h3>
-                <div style={{
-                  padding: '16px',
-                  backgroundColor: '#EEF2FF',
-                  borderLeft: '4px solid #667eea',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  color: '#1F2937',
-                  fontWeight: '500',
-                  lineHeight: '1.5'
-                }}>
-                  {selectedConcesion.titular}
-                </div>
+                <InfoRow label="Título" value={selectedConcesion.titulo} />
+                <InfoRow label="Municipio" value={selectedConcesion.municipio} />
+                <InfoRow 
+                  label="Región" 
+                  value={selectedConcesion.region || getRegionFromMunicipio(selectedConcesion.municipio) || 'N/A'} 
+                />
+                <InfoRow label="Superficie" value={`${selectedConcesion.superficie} ha`} />
               </div>
 
               {/* Fechas */}
-              <div style={{ marginBottom: '24px' }}>
-                <h3 style={{ 
-                  fontSize: '12px', 
-                  fontWeight: '700',
-                  color: '#9CA3AF',
-                  marginBottom: '16px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '1px'
-                }}>
-                  Fechas Importantes
-                </h3>
-                
-                <div style={{ 
-                  display: 'grid', 
-                  gap: '12px'
-                }}>
-                  <DateCard icon="📅" label="Expedición" value={formatDate(selectedConcesion.fecha_expedicion)} />
-                  <DateCard icon="🟢" label="Inicio" value={formatDate(selectedConcesion['Fecha de Inicio'])} />
-                  <DateCard icon="🔴" label="Fin" value={formatDate(selectedConcesion['Fecha de Fin'])} />
-                </div>
+              <div className="dates-grid">
+                <DateCard
+                  icon="📅"
+                  label="Expedición"
+                  value={selectedConcesion.fecha_expedicion || 'N/A'}
+                />
+                <DateCard
+                  icon="🟢"
+                  label="Inicio"
+                  value={selectedConcesion.fecha_inicio || 'N/A'}
+                />
+                <DateCard
+                  icon="⏰"
+                  label="Vencimiento"
+                  value={selectedConcesion.fecha_fin || 'N/A'}
+                />
               </div>
 
-              {/* Coordenadas */}
-              <div style={{ marginBottom: '24px' }}>
-                <h3 style={{ 
-                  fontSize: '12px', 
-                  fontWeight: '700',
-                  color: '#9CA3AF',
-                  marginBottom: '12px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '1px'
-                }}>
-                  Coordenadas
-                </h3>
-                <div style={{
-                  padding: '16px',
-                  backgroundColor: '#FFF7ED',
-                  borderRadius: '12px',
-                  fontSize: '13px',
-                  color: '#78350F',
-                  border: '1px solid #FED7AA'
-                }}>
-                  <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontWeight: '700' }}>📍 Latitud:</span>
-                    <span>{selectedConcesion.latitud}</span>
-                  </div>
-                  <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontWeight: '700' }}>📍 Longitud:</span>
-                    <span>{selectedConcesion.longitud}</span>
-                  </div>
-                  <div style={{ 
-                    fontSize: '11px', 
-                    color: '#92400E',
-                    paddingTop: '8px',
-                    borderTop: '1px solid #FED7AA',
-                    fontFamily: 'monospace'
-                  }}>
-                    Decimal: {selectedConcesion.coords[1].toFixed(6)}, {selectedConcesion.coords[0].toFixed(6)}
-                  </div>
-                </div>
-              </div>
-
-              {/* Botón de descarga - ahora al final */}
-              <button
-                onClick={() => downloadRPMCard(selectedConcesion.titulo, selectedConcesion.nombre_lote)}
-                style={{
-                  width: '100%',
-                  padding: '16px',
-                  fontSize: '15px',
-                  fontWeight: '700',
-                  color: 'white',
-                  background: 'linear-gradient(135deg, #020202 0%, #2d0555 100%)',
-                  border: 'none',
-                  borderRadius: '12px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '10px',
-                  transition: 'all 0.3s',
-                  boxShadow: '0 4px 12px rgba(76, 175, 80, 0.3)'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = '0 6px 20px rgba(76, 175, 80, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 4px 12px rgba(76, 175, 80, 0.3)';
-                }}
-              >
-                <svg 
-                  width="20" 
-                  height="20" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2.5" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
+              {/* Botón de descarga de tarjeta RPM */}
+              <div style={{ marginTop: '24px' }}>
+                <a
+                  href={`https://tarjetarpm.economia.gob.mx/tarjeta.mineria/obtiene.tarjetaPDF?notitulo=${selectedConcesion.titulo}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '14px 20px',
+                    backgroundColor: '#667eea',
+                    color: 'white',
+                    textAlign: 'center',
+                    borderRadius: '12px',
+                    textDecoration: 'none',
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    transition: 'all 0.2s',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#5568d3'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#667eea'}
                 >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="7 10 12 15 17 10"></polyline>
-                  <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                Descargar Tarjeta RPM
-              </button>
+                  📄 Descargar Tarjeta RPM
+                </a>
+              </div>
             </div>
           </div>
         ) : (
-          // Vista por defecto
-          <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            {/* Header con gradiente */}
-            <div style={{
-              background: 'linear-gradient(135deg, #020202 0%, #2d0555 100%)',
-              padding: '28px 24px',
-              color: 'white'
-            }}>
-              <h2 style={{ 
-                margin: '0 0 8px 0', 
-                fontSize: '28px',
-                fontWeight: '700',
-                textShadow: '0 2px 4px rgba(0,0,0,0.1)'
-              }}>
-                Concesiones Mineras
+          // Lista de concesiones
+          <div className="side-panel-content">
+            {/* Header */}
+            <div className="panel-header panel-header-main">
+              <h2 className="panel-title">
+                🗺️ Concesiones Mineras
               </h2>
-              
-              <p style={{ 
-                fontSize: '14px', 
-                opacity: 0.95,
-                lineHeight: '1.5',
-                margin: 0
-              }}>
-                {selectedMunicipio 
-                  ? `Mostrando concesiones en ${selectedMunicipio}`
-                  : 'Explora las concesiones del estado de Guerrero'}
+              <p className="panel-subtitle">
+                Estado de Guerrero
               </p>
             </div>
 
             {/* Contenido con scroll */}
-            <div style={{
-              flex: 1,
-              overflowY: 'auto',
-              padding: '24px'
-            }}>
+            <div className="scrollable-content-list">
               {/* Estadísticas */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '12px',
-                marginBottom: '28px'
-              }}>
-                <StatCardModern 
+              <div className="stats-grid">
+                <StatCard 
                   icon="📊"
                   label="Total" 
                   value={concesiones.length}
-                  color="#667eea"
+                  color="color-purple"
                 />
-                <StatCardModern 
+                <StatCard 
                   icon="🏙️"
                   label="Municipios" 
                   value={municipios.length}
-                  color="#764ba2"
+                  color="color-violet"
                 />
-                <StatCardModern 
+                <StatCard 
                   icon="✅"
                   label="Vigentes" 
-                  value={concesiones.filter(c => c.Estado === 'Vigente').length}
-                  color="#4CAF50"
+                  value={concesiones.filter(c => c.estado === 'Vigente').length}
+                  color="color-green"
                 />
-                <StatCardModern 
+                <StatCard 
                   icon="📏"
                   label="Superficie" 
                   value={`${concesiones.reduce((sum, c) => sum + parseFloat(c.superficie || 0), 0).toFixed(0)} ha`}
-                  color="#FF9800"
+                  color="color-orange"
                   small
                 />
               </div>
-              
-              {/* Lista de concesiones filtradas */}
+
+              {/* Lista de concesiones */}
               <div>
-                <h3 style={{ 
-                  fontSize: '12px', 
-                  fontWeight: '700',
-                  color: '#9CA3AF',
-                  marginBottom: '16px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '1px'
-                }}>
+                <h3 className="concesiones-list-header">
                   {filteredConcesiones.length > 0 
                     ? `Concesiones visibles (${filteredConcesiones.length})`
                     : 'No hay concesiones que mostrar'}
                 </h3>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+
+                <div className="concesiones-list">
                   {filteredConcesiones.slice(0, 20).map(concesion => (
                     <div
-                      key={concesion.fid}
+                      key={concesion.titulo}
                       onClick={() => handleConcesionClick(concesion)}
-                      style={{
-                        padding: '16px',
-                        backgroundColor: '#F9FAFB',
-                        borderRadius: '12px',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        border: '1px solid #E5E7EB'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#EEF2FF';
-                        e.currentTarget.style.borderColor = '#667eea';
-                        e.currentTarget.style.transform = 'translateX(4px)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#F9FAFB';
-                        e.currentTarget.style.borderColor = '#E5E7EB';
-                        e.currentTarget.style.transform = 'translateX(0)';
-                      }}
+                      className="concesion-item"
                     >
-                      <div style={{ 
-                        fontWeight: '600', 
-                        fontSize: '14px',
-                        color: '#1F2937',
-                        marginBottom: '6px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px'
-                      }}>
-                        <span style={{ fontSize: '16px' }}>
-                          {concesion.Estado === 'Vigente' ? '🔴' : '⚫'}
+                      <div className="concesion-name">
+                        <span className="concesion-status-icon">
+                          {concesion.estado === 'Vigente' ? '🔴' : '⚫'}
                         </span>
                         {concesion.nombre_lote}
                       </div>
-                      <div style={{ fontSize: '12px', color: '#6B7280', marginBottom: '4px' }}>
+                      <div className="concesion-titular">
                         {concesion.titular}
                       </div>
-                      <div style={{ 
-                        fontSize: '11px', 
-                        color: '#9CA3AF',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px'
-                      }}>
+                      <div className="concesion-details">
                         <span>📍 {concesion.municipio}</span>
                         <span>•</span>
                         <span>📐 {concesion.superficie} ha</span>
@@ -807,14 +843,7 @@ function App() {
                     </div>
                   ))}
                   {filteredConcesiones.length > 20 && (
-                    <div style={{
-                      padding: '12px',
-                      textAlign: 'center',
-                      fontSize: '12px',
-                      color: '#9CA3AF',
-                      backgroundColor: '#F9FAFB',
-                      borderRadius: '8px'
-                    }}>
+                    <div className="list-footer">
                       Mostrando 20 de {filteredConcesiones.length} concesiones
                     </div>
                   )}
@@ -828,97 +857,31 @@ function App() {
   );
 }
 
-// Componente auxiliar para mostrar información
+// Componente para mostrar información
 const InfoRow = ({ label, value }) => (
-  <div>
-    <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
-      {label}
-    </div>
-    <div style={{ fontSize: '15px', color: '#1a1a1a', fontWeight: '500' }}>
-      {value || 'N/A'}
-    </div>
-  </div>
-);
-
-// Componente moderno para mostrar información
-const InfoRowModern = ({ label, value }) => (
-  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-    <span style={{ fontSize: '13px', color: '#6B7280', fontWeight: '500' }}>
-      {label}
-    </span>
-    <span style={{ fontSize: '14px', color: '#1F2937', fontWeight: '600' }}>
-      {value || 'N/A'}
-    </span>
+  <div className="info-row">
+    <div className="info-label">{label}</div>
+    <div className="info-value">{value || 'N/A'}</div>
   </div>
 );
 
 // Componente para tarjetas de fechas
 const DateCard = ({ icon, label, value }) => (
-  <div style={{
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '12px',
-    backgroundColor: 'white',
-    borderRadius: '8px',
-    border: '1px solid #E5E7EB'
-  }}>
-    <span style={{ fontSize: '20px' }}>{icon}</span>
-    <div style={{ flex: 1 }}>
-      <div style={{ fontSize: '11px', color: '#9CA3AF', marginBottom: '2px' }}>
-        {label}
-      </div>
-      <div style={{ fontSize: '14px', color: '#1F2937', fontWeight: '600' }}>
-        {value}
-      </div>
+  <div className="date-card">
+    <span className="date-icon">{icon}</span>
+    <div className="date-info">
+      <div className="date-label">{label}</div>
+      <div className="date-value">{value}</div>
     </div>
   </div>
 );
 
-// Componente auxiliar para tarjetas de estadísticas
-const StatCard = ({ label, value, color, small }) => (
-  <div style={{
-    padding: '15px',
-    backgroundColor: '#f9f9f9',
-    borderRadius: '8px',
-    borderLeft: `4px solid ${color}`
-  }}>
-    <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
-      {label}
-    </div>
-    <div style={{ 
-      fontSize: small ? '16px' : '24px', 
-      fontWeight: '700', 
-      color: color 
-    }}>
-      {value}
-    </div>
-  </div>
-);
-
-// Componente moderno para tarjetas de estadísticas
-const StatCardModern = ({ icon, label, value, color, small }) => (
-  <div style={{
-    padding: '16px',
-    backgroundColor: 'white',
-    borderRadius: '12px',
-    border: '1px solid #E5E7EB',
-    transition: 'all 0.2s'
-  }}>
-    <div style={{ 
-      fontSize: '24px', 
-      marginBottom: '8px' 
-    }}>
-      {icon}
-    </div>
-    <div style={{ fontSize: '11px', color: '#9CA3AF', marginBottom: '4px', fontWeight: '600' }}>
-      {label}
-    </div>
-    <div style={{ 
-      fontSize: small ? '18px' : '24px', 
-      fontWeight: '700', 
-      color: color 
-    }}>
+// Componente para tarjetas de estadísticas
+const StatCard = ({ icon, label, value, color, small }) => (
+  <div className="stat-card">
+    <div className="stat-icon">{icon}</div>
+    <div className="stat-label">{label}</div>
+    <div className={`stat-value ${small ? 'small' : ''} ${color}`}>
       {value}
     </div>
   </div>
