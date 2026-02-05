@@ -108,7 +108,7 @@ function App() {
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/pepelepew/cml8d6k0c00d301s3hjayaqcs/draft',
+      style: 'mapbox://styles/pepelepew/cml8d6k0c00d301s3hjayaqcs',
       center: [-99.5008, 17.5509],
       zoom: 8
     });
