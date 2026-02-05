@@ -635,3 +635,397 @@ body {
 .color-violet { color: #764ba2; }
 .color-green { color: #4CAF50; }
 .color-orange { color: #FF9800; }
+
+/* Botón toggle para mostrar/ocultar panel en móvil */
+.btn-toggle-panel {
+  display: none;
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 20;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s;
+}
+
+.btn-toggle-panel:hover {
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+}
+
+/* Cuando el panel esta oculto, reposicionar filtros */
+.filters-title-container.filters-no-panel {
+  left: 20px;
+}
+
+.filters-controls.filters-no-panel {
+  left: 20px;
+}
+
+/* ===== RESPONSIVE: Tablets (1024px and below) ===== */
+@media (max-width: 1024px) {
+  .side-panel {
+    width: 320px;
+    left: 10px;
+    top: 10px;
+    bottom: 10px;
+  }
+
+  .filters-title-container {
+    left: 345px;
+    top: 10px;
+  }
+
+  .filters-controls {
+    left: 345px;
+    top: 50px;
+    right: 10px;
+    gap: 8px;
+  }
+
+  .filter-select {
+    min-width: 150px;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .filter-select-municipio {
+    min-width: 160px;
+  }
+
+  .filter-select-year {
+    min-width: 130px;
+  }
+
+  .search-input {
+    min-width: 180px;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .btn-stats {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  .stats-panel {
+    width: 380px;
+    top: 110px;
+    right: 10px;
+  }
+
+  .panel-header-main {
+    padding: 18px;
+  }
+
+  .panel-title {
+    font-size: 20px;
+  }
+
+  .scrollable-content {
+    padding: 18px;
+  }
+
+  .scrollable-content-list {
+    padding: 16px;
+  }
+}
+
+/* ===== RESPONSIVE: Small tablets / large phones (768px and below) ===== */
+@media (max-width: 768px) {
+  #root {
+    overflow: auto;
+  }
+
+  .btn-toggle-panel {
+    display: block;
+  }
+
+  .side-panel {
+    width: calc(100% - 20px);
+    left: 10px;
+    top: 10px;
+    bottom: 10px;
+    z-index: 15;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+
+  .side-panel.panel-hidden {
+    transform: translateX(-110%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .side-panel.panel-visible {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .filters-title-container {
+    left: 10px;
+    top: 70px;
+  }
+
+  .filters-controls {
+    left: 10px;
+    top: 110px;
+    right: 10px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .filter-select {
+    min-width: 0;
+    flex: 1 1 calc(50% - 6px);
+    padding: 10px 10px;
+    font-size: 12px;
+  }
+
+  .filter-select-municipio {
+    min-width: 0;
+    flex: 1 1 calc(50% - 6px);
+  }
+
+  .filter-select-year {
+    min-width: 0;
+    flex: 1 1 calc(50% - 6px);
+  }
+
+  .search-input {
+    min-width: 0;
+    flex: 1 1 100%;
+    padding: 10px 10px;
+    font-size: 12px;
+  }
+
+  .btn-stats {
+    flex: 1 1 100%;
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .stats-panel {
+    width: calc(100% - 20px);
+    left: 10px;
+    right: 10px;
+    top: 80px;
+    max-height: calc(100vh - 100px);
+  }
+
+  .stats-header {
+    padding: 16px 18px;
+  }
+
+  .stats-title {
+    font-size: 16px;
+  }
+
+  .stats-scrollable {
+    padding: 18px;
+  }
+
+  .stats-item-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .stats-item-grid-three {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .panel-header {
+    padding: 16px;
+  }
+
+  .panel-header-main {
+    padding: 16px;
+  }
+
+  .panel-title {
+    font-size: 20px;
+  }
+
+  .panel-subtitle {
+    font-size: 12px;
+  }
+
+  .concesion-header-title {
+    font-size: 20px;
+  }
+
+  .dates-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .scrollable-content {
+    padding: 16px;
+  }
+
+  .scrollable-content-list {
+    padding: 14px;
+  }
+
+  .filters-title {
+    padding: 6px 14px;
+    border-radius: 10px 10px 0 0;
+  }
+
+  .filters-title-text {
+    font-size: 13px;
+  }
+}
+
+/* ===== RESPONSIVE: Mobile phones (480px and below) ===== */
+@media (max-width: 480px) {
+  .side-panel {
+    width: calc(100% - 16px);
+    left: 8px;
+    top: 8px;
+    bottom: 8px;
+    border-radius: 12px;
+  }
+
+  .btn-toggle-panel {
+    top: 12px;
+    left: 12px;
+    padding: 8px 14px;
+    font-size: 13px;
+    border-radius: 10px;
+  }
+
+  .filters-title-container {
+    left: 8px;
+    top: 60px;
+  }
+
+  .filters-controls {
+    left: 8px;
+    top: 96px;
+    right: 8px;
+    gap: 6px;
+  }
+
+  .filter-select {
+    flex: 1 1 100%;
+    padding: 10px 10px;
+    font-size: 12px;
+    border-radius: 10px;
+  }
+
+  .filter-select-municipio,
+  .filter-select-year {
+    flex: 1 1 100%;
+  }
+
+  .search-input {
+    font-size: 12px;
+    border-radius: 10px;
+  }
+
+  .btn-stats {
+    border-radius: 10px;
+    font-size: 12px;
+  }
+
+  .panel-header-main {
+    padding: 14px;
+  }
+
+  .panel-title {
+    font-size: 18px;
+  }
+
+  .concesion-header-title {
+    font-size: 18px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
+
+  .stat-value.small {
+    font-size: 15px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+  }
+
+  .stat-icon {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+
+  .stat-card {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .info-value {
+    font-size: 14px;
+  }
+
+  .concesion-item {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .concesion-name {
+    font-size: 13px;
+  }
+
+  .concesion-titular {
+    font-size: 11px;
+  }
+
+  .concesion-details {
+    font-size: 10px;
+  }
+
+  .stats-panel {
+    top: 60px;
+    max-height: calc(100vh - 80px);
+    border-radius: 12px;
+  }
+
+  .stats-item {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .btn-nav {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+
+  .navigation-counter {
+    font-size: 12px;
+  }
+
+  .date-card {
+    padding: 10px;
+  }
+
+  .date-value {
+    font-size: 13px;
+  }
+
+  .date-label {
+    font-size: 10px;
+  }
+}

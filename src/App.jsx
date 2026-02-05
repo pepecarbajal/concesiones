@@ -92,6 +92,7 @@ function App() {
   const [filteredConcesiones, setFilteredConcesiones] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [yearFilter, setYearFilter] = useState('');
+  const [panelVisible, setPanelVisible] = useState(true);
 
   // Cargar concesiones al montar el componente
   useEffect(() => {
@@ -345,6 +346,11 @@ function App() {
     // Mostrar popup de coordenadas
     showCoordinatesPopup(concesion);
     
+    // En pantallas pequenas, ocultar panel para mostrar el mapa
+    if (window.innerWidth <= 768) {
+      setPanelVisible(false);
+    }
+    
     // Solo hacer zoom, NO ajustar bounds
     if (map.current) {
       map.current.flyTo({
@@ -572,11 +578,19 @@ function App() {
 
   return (
     <div className="app-container">
+      {/* Botón toggle panel en móvil */}
+      <button
+        className="btn-toggle-panel"
+        onClick={() => setPanelVisible(!panelVisible)}
+      >
+        {panelVisible ? '✕ Cerrar' : '☰ Menu'}
+      </button>
+
       {/* Mapa de fondo */}
       <div ref={mapContainer} className="map-container" />
 
       {/* Título elegante de filtros */}
-      <div className="filters-title-container">
+      <div className={`filters-title-container ${!panelVisible ? 'filters-no-panel' : ''}`}>
         <div className="filters-title">
           <span className="filters-title-icon">🔍</span>
           <span className="filters-title-text">Filtros de Búsqueda</span>
@@ -584,7 +598,7 @@ function App() {
       </div>
 
       {/* Controles flotantes superiores */}
-      <div className="filters-controls">
+      <div className={`filters-controls ${!panelVisible ? 'filters-no-panel' : ''}`}>
         {/* Filtro por Región */}
         <select
           value={selectedRegion}
@@ -646,7 +660,7 @@ function App() {
       </div>
 
       {/* Panel lateral izquierdo */}
-      <div className="side-panel">
+      <div className={`side-panel ${panelVisible ? 'panel-visible' : 'panel-hidden'}`}>
         {selectedConcesion ? (
           // Información de concesión seleccionada
           <div className="side-panel-content">
