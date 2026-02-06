@@ -881,116 +881,75 @@ html, body {
    RESPONSIVE: Mobile (max-width: 768px)
    ======================================== */
 @media (max-width: 768px) {
-  #root {
-    overflow: hidden;
-  }
-
+  /* Mostrar botones toggle en móvil */
   .mobile-toggle-buttons {
     display: flex;
   }
 
-  /* Mover controles del mapa para que no se tapen */
-  .mapboxgl-ctrl-top-right {
-    top: 70px;
-    right: 10px;
-  }
-
+  /* Panel lateral - pantalla completa en móvil */
   .side-panel {
-    width: calc(100% - 20px);
-    max-width: 420px;
-    left: 10px;
-    top: 70px;
-    bottom: 10px;
-    z-index: 15;
+    width: 100%;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    border-radius: 0;
+    max-height: 100vh;
   }
 
-  /* Barra de filtros en movil */
+  .side-panel.panel-hidden {
+    transform: translateX(-100%);
+  }
+
+  /* Barra de filtros - pantalla completa en móvil */
   .filters-bar {
-    position: absolute;
-    left: 10px;
-    right: 10px;
-    top: 70px;
-    z-index: 14;
+    left: 0;
+    right: 0;
+    top: 0;
+    background: white;
+    border-radius: 0;
+    padding: 60px 14px 14px 14px;
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+
+  .filters-bar.filters-hidden {
+    transform: translateY(-100%);
   }
 
   .filters-bar.filters-no-panel {
-    left: 10px;
+    left: 0;
+  }
+
+  .filters-bar-header {
+    border-radius: 0;
+    align-self: stretch;
+    padding: 10px 18px;
   }
 
   .filters-bar-content {
     flex-direction: column;
-    gap: 8px;
-    padding: 10px;
+    border-radius: 0;
+    gap: 12px;
+    padding: 16px;
   }
 
-  .filter-select {
-    min-width: 0;
-    width: 100%;
-    padding: 10px 12px;
-    font-size: 13px;
-  }
-
-  .filter-select-municipio {
-    min-width: 0;
-    width: 100%;
-  }
-
-  .filter-select-year {
-    min-width: 0;
-    width: 100%;
-  }
-
+  .filter-select,
+  .filter-select-municipio,
+  .filter-select-year,
   .search-input {
-    min-width: 0;
     width: 100%;
-    padding: 10px 12px;
-    font-size: 13px;
+    min-width: 100%;
+    max-width: 100%;
   }
 
   .btn-download {
     width: 100%;
     justify-content: center;
-    padding: 10px 14px;
   }
 
-  .stats-panel {
-    width: calc(100% - 20px);
-    left: 10px;
-    right: 10px;
-    top: 70px;
-    bottom: 10px; /* Agregar bottom en lugar de max-height */
-    overflow-y: auto; /* Agregar scroll vertical */
-    -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
-  }
-
-  .stats-header {
-    padding: 14px 16px;
-  }
-
-  .stats-title {
-    font-size: 15px;
-  }
-
-  .stats-scrollable {
-    padding-bottom: 24px;
-  }
-
-  .stats-item-grid {
-    grid-template-columns: 1fr;
-    gap: 4px;
-  }
-
-  .stats-item-grid-three {
-    grid-template-columns: 1fr 1fr;
-    gap: 4px;
-  }
-
-  .panel-header {
-    padding: 16px;
-  }
-
+  /* Ajustes de header del panel */
   .panel-header-main {
-    padding: 18px 16px 16px;
+    padding: 20px 16px 18px;
   }
 
   .panel-title {
@@ -1001,89 +960,47 @@ html, body {
     font-size: 12px;
   }
 
+  /* Navegación de concesiones */
+  .navigation-controls {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .btn-nav {
+    font-size: 11px;
+    padding: 6px 12px;
+  }
+
+  .navigation-counter {
+    font-size: 12px;
+    width: 100%;
+    text-align: center;
+    order: -1;
+  }
+
   .concesion-header-title {
-    font-size: 20px;
+    font-size: 18px;
+    line-height: 1.3;
   }
 
-  .dates-grid {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-
+  /* Contenido scrolleable */
   .scrollable-content {
     padding: 16px;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 36px;
+    padding-bottom: 24px;
   }
 
   .scrollable-content-list {
     padding: 14px;
-  }
-}
-
-/* ========================================
-   RESPONSIVE: Small phones (max-width: 480px)
-   ======================================== */
-@media (max-width: 480px) {
-  .mobile-toggle-buttons {
-    top: 10px;
-    left: 10px;
-    gap: 6px;
+    padding-bottom: 24px;
   }
 
-  .btn-toggle-panel,
-  .btn-toggle-filters {
-    padding: 8px 12px;
-    font-size: 12px;
-    border-radius: 10px;
+  /* Grid de estadísticas */
+  .stats-grid {
+    gap: 8px;
   }
 
-  .side-panel {
-    width: calc(100% - 16px);
-    left: 8px;
-    top: 60px;
-    bottom: 8px;
-    border-radius: 12px;
-  }
-
-  .filters-bar {
-    left: 8px;
-    right: 8px;
-    top: 60px;
-  }
-
-  .filters-bar-content {
-    padding: 8px;
-    border-radius: 0 10px 10px 10px;
-  }
-
-  .filter-select,
-  .search-input {
-    padding: 9px 10px;
-    font-size: 12px;
-    border-radius: 8px;
-  }
-
-  .btn-download {
-    border-radius: 8px;
-    font-size: 12px;
-  }
-
-  .panel-header-main {
-    padding: 16px 14px 14px;
-  }
-
-  .panel-title {
-    font-size: 18px;
-  }
-
-  .concesion-header-title {
-    font-size: 18px;
+  .stat-card {
+    padding: 12px;
   }
 
   .stat-value {
@@ -1091,25 +1008,23 @@ html, body {
   }
 
   .stat-value.small {
-    font-size: 14px;
+    font-size: 15px;
   }
 
-  .stat-label {
-    font-size: 9px;
+  /* Grid de fechas */
+  .dates-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 20px;
   }
 
-  .stat-card {
-    padding: 12px;
-    border-radius: 10px;
+  .date-card {
+    padding: 10px;
   }
 
-  .info-value {
-    font-size: 13px;
-  }
-
+  /* Lista de concesiones */
   .concesion-item {
     padding: 12px;
-    border-radius: 8px;
   }
 
   .concesion-name {
@@ -1124,42 +1039,145 @@ html, body {
     font-size: 10px;
   }
 
+  /* Info rows */
+  .info-rows {
+    gap: 14px;
+  }
+
+  .info-label {
+    font-size: 10px;
+  }
+
+  .info-value {
+    font-size: 13px;
+  }
+
+  /* Botón RPM */
+  .btn-rpm {
+    padding: 12px 18px;
+    font-size: 13px;
+  }
+
+  /* Panel de estadísticas - ocultar en móvil */
   .stats-panel {
-    top: 60px;
-    max-height: calc(100vh - 70px);
-    border-radius: 12px;
+    display: none;
   }
 
-  .stats-item {
-    padding: 12px;
-    border-radius: 8px;
+  /* Controles de navegación del mapa */
+  .mapboxgl-ctrl-top-right {
+    top: 70px;
+    right: 10px;
   }
 
-  .btn-nav {
-    padding: 5px 10px;
-    font-size: 11px;
-    border-radius: 6px;
+  /* Popup de mapbox más pequeño */
+  .mapboxgl-popup-content {
+    max-width: 280px !important;
+  }
+}
+
+/* ========================================
+   RESPONSIVE: Mobile Pequeño (max-width: 480px)
+   ======================================== */
+@media (max-width: 480px) {
+  .mobile-toggle-buttons {
+    gap: 6px;
+    top: 10px;
+    left: 10px;
   }
 
-  .navigation-counter {
-    font-size: 11px;
-  }
-
-  .date-card {
-    padding: 10px;
-  }
-
-  .date-value {
+  .btn-toggle-panel,
+  .btn-toggle-filters {
+    padding: 8px 12px;
     font-size: 12px;
+    gap: 4px;
   }
 
-  .date-label {
+  .btn-toggle-panel svg,
+  .btn-toggle-filters svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Ajustes adicionales para pantallas muy pequeñas */
+  .panel-title {
+    font-size: 18px;
+  }
+
+  .panel-subtitle {
+    font-size: 11px;
+  }
+
+  .concesion-header-title {
+    font-size: 16px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .stat-value {
+    font-size: 18px;
+  }
+
+  .stat-value.small {
+    font-size: 14px;
+  }
+
+  .stat-label {
     font-size: 9px;
   }
 
-  .btn-rpm {
-    padding: 12px 16px;
-    font-size: 13px;
-    border-radius: 10px;
+  .btn-nav {
+    font-size: 10px;
+    padding: 5px 10px;
+  }
+
+  .btn-back {
+    font-size: 11px;
+    padding: 6px 12px;
+  }
+
+  .scrollable-content {
+    padding: 14px;
+  }
+
+  .scrollable-content-list {
+    padding: 12px;
+  }
+
+  /* Popup más pequeño en móviles pequeños */
+  .mapboxgl-popup-content {
+    max-width: 240px !important;
+    font-size: 11px !important;
+  }
+
+  .mapboxgl-ctrl-top-right {
+    top: 65px;
+  }
+}
+
+/* ========================================
+   LANDSCAPE MOBILE (orientación horizontal)
+   ======================================== */
+@media (max-width: 768px) and (orientation: landscape) {
+  .side-panel {
+    max-height: 100vh;
+  }
+
+  .filters-bar {
+    max-height: 100vh;
+  }
+
+  .scrollable-content,
+  .scrollable-content-list {
+    max-height: calc(100vh - 140px);
+  }
+
+  .navigation-controls {
+    margin-bottom: 10px;
+  }
+
+  .btn-back {
+    margin-bottom: 10px;
   }
 }
