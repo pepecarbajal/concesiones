@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import './index.css';
@@ -60,6 +60,7 @@ function App() {
   const map = useRef(null);
   const markers = useRef([]);
   const coordinatesPopup = useRef(null);
+  const isNavigating = useRef(false); // Flag para prevenir clicks multiples
   
   const [concesiones, setConcesiones] = useState([]);
   const [municipios, setMunicipios] = useState([]);
@@ -224,10 +225,10 @@ function App() {
       filteredConcesiones.forEach(c => bounds.extend(c.coords));
       map.current.fitBounds(bounds, { padding: 100, maxZoom: 12 });
     }
-  }, [filteredConcesiones]);
+  }, [filteredConcesiones, selectedMunicipio, selectedRegion, searchTerm]);
 
   // Mostrar popup de coordenadas flotante
-  const showCoordinatesPopup = (concesion) => {
+  const showCoordinatesPopup = useCallback((concesion) => {
     if (coordinatesPopup.current) {
       coordinatesPopup.current.remove();
     }
@@ -273,7 +274,7 @@ function App() {
         </div>
       `)
       .addTo(map.current);
-  };
+  }, []);
 
   // Manejar cambio de region
   const handleRegionChange = (e) => {
@@ -346,43 +347,69 @@ function App() {
     }
   };
 
-  // Navegar a la concesion anterior
-  const handlePrevious = () => {
-    if (filteredConcesiones.length === 0) return;
+  // Navegar a la concesion anterior - CON PROTECCIÓN CONTRA CLICKS RÁPIDOS
+  const handlePrevious = useCallback(() => {
+    if (filteredConcesiones.length === 0 || isNavigating.current) return;
     
-    const newIndex = currentIndex > 0 ? currentIndex - 1 : filteredConcesiones.length - 1;
-    setCurrentIndex(newIndex);
-    const concesion = filteredConcesiones[newIndex];
-    setSelectedConcesion(concesion);
-    showCoordinatesPopup(concesion);
+    isNavigating.current = true;
     
-    if (map.current) {
-      map.current.flyTo({
-        center: concesion.coords,
-        zoom: 14,
-        duration: 1000
-      });
-    }
-  };
+    setCurrentIndex(prevIndex => {
+      const newIndex = prevIndex > 0 ? prevIndex - 1 : filteredConcesiones.length - 1;
+      const concesion = filteredConcesiones[newIndex];
+      
+      if (concesion) {
+        setSelectedConcesion(concesion);
+        showCoordinatesPopup(concesion);
+        
+        if (map.current) {
+          map.current.flyTo({
+            center: concesion.coords,
+            zoom: 14,
+            duration: 1000
+          });
+        }
+      }
+      
+      // Liberar el flag después de un delay
+      setTimeout(() => {
+        isNavigating.current = false;
+      }, 300);
+      
+      return newIndex;
+    });
+  }, [filteredConcesiones, showCoordinatesPopup]);
 
-  // Navegar a la concesion siguiente
-  const handleNext = () => {
-    if (filteredConcesiones.length === 0) return;
+  // Navegar a la concesion siguiente - CON PROTECCIÓN CONTRA CLICKS RÁPIDOS
+  const handleNext = useCallback(() => {
+    if (filteredConcesiones.length === 0 || isNavigating.current) return;
     
-    const newIndex = currentIndex < filteredConcesiones.length - 1 ? currentIndex + 1 : 0;
-    setCurrentIndex(newIndex);
-    const concesion = filteredConcesiones[newIndex];
-    setSelectedConcesion(concesion);
-    showCoordinatesPopup(concesion);
+    isNavigating.current = true;
     
-    if (map.current) {
-      map.current.flyTo({
-        center: concesion.coords,
-        zoom: 14,
-        duration: 1000
-      });
-    }
-  };
+    setCurrentIndex(prevIndex => {
+      const newIndex = prevIndex < filteredConcesiones.length - 1 ? prevIndex + 1 : 0;
+      const concesion = filteredConcesiones[newIndex];
+      
+      if (concesion) {
+        setSelectedConcesion(concesion);
+        showCoordinatesPopup(concesion);
+        
+        if (map.current) {
+          map.current.flyTo({
+            center: concesion.coords,
+            zoom: 14,
+            duration: 1000
+          });
+        }
+      }
+      
+      // Liberar el flag después de un delay
+      setTimeout(() => {
+        isNavigating.current = false;
+      }, 300);
+      
+      return newIndex;
+    });
+  }, [filteredConcesiones, showCoordinatesPopup]);
 
   // Obtener municipios filtrados por region usando datos del JSON
   const getMunicipiosFiltrados = () => {
@@ -444,70 +471,6 @@ function App() {
       console.error('Error al generar el archivo Excel:', error);
       alert('Hubo un error al generar el archivo Excel. Por favor intente nuevamente.');
     }
-  };
-
-  // Calcular estadisticas
-  const calcularEstadisticas = () => {
-    let data = [...concesiones];
-    
-    if (yearFilter) {
-      data = data.filter(c => {
-        if (c.fecha_inicio) {
-          const parts = c.fecha_inicio.split('/');
-          if (parts.length === 3) {
-            let year = parts[2];
-            if (year.length === 2) {
-              year = parseInt(year) > 50 ? '19' + year : '20' + year;
-            }
-            return year === yearFilter;
-          }
-        }
-        return false;
-      });
-    }
-    
-    const porMunicipio = {};
-    data.forEach(c => {
-      if (!porMunicipio[c.municipio]) {
-        porMunicipio[c.municipio] = { total: 0, vigentes: 0, superficie: 0, titulares: new Set() };
-      }
-      porMunicipio[c.municipio].total++;
-      if (c.estado === 'Vigente') porMunicipio[c.municipio].vigentes++;
-      porMunicipio[c.municipio].superficie += parseFloat(c.superficie || 0);
-      porMunicipio[c.municipio].titulares.add(c.titular);
-    });
-
-    const porTitular = {};
-    data.forEach(c => {
-      if (!porTitular[c.titular]) {
-        porTitular[c.titular] = { total: 0, vigentes: 0, superficie: 0, municipios: new Set() };
-      }
-      porTitular[c.titular].total++;
-      if (c.estado === 'Vigente') porTitular[c.titular].vigentes++;
-      porTitular[c.titular].superficie += parseFloat(c.superficie || 0);
-      porTitular[c.titular].municipios.add(c.municipio);
-    });
-
-    const porAnio = {};
-    data.forEach(c => {
-      if (c.fecha_inicio) {
-        const parts = c.fecha_inicio.split('/');
-        if (parts.length === 3) {
-          let year = parts[2];
-          if (year.length === 2) {
-            year = parseInt(year) > 50 ? '19' + year : '20' + year;
-          }
-          if (!porAnio[year]) {
-            porAnio[year] = { total: 0, vigentes: 0, superficie: 0 };
-          }
-          porAnio[year].total++;
-          if (c.estado === 'Vigente') porAnio[year].vigentes++;
-          porAnio[year].superficie += parseFloat(c.superficie || 0);
-        }
-      }
-    });
-
-    return { porMunicipio, porTitular, porAnio };
   };
 
   // Obtener anios unicos
