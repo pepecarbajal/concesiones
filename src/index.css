@@ -102,7 +102,7 @@ html, body {
   position: absolute;
   top: 14px;
   left: 14px;
-  z-index: 20;
+  z-index: 30;
   gap: 8px;
 }
 
@@ -412,12 +412,16 @@ html, body {
   flex: 1;
   overflow-y: auto;
   padding: 24px;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 36px;
 }
 
 .scrollable-content-list {
   flex: 1;
   overflow-y: auto;
   padding: 20px;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 36px;
 }
 
 /* Informacion de concesion */
@@ -732,7 +736,6 @@ html, body {
   padding: 22px;
 }
 
-/* Secciones de estadisticas */
 .stats-section {
   margin-bottom: 28px;
 }
@@ -865,6 +868,8 @@ html, body {
 
   .scrollable-content {
     padding: 20px;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 36px;
   }
 
   .scrollable-content-list {
@@ -1012,6 +1017,8 @@ html, body {
 
   .scrollable-content {
     padding: 16px;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 36px;
   }
 
   .scrollable-content-list {
