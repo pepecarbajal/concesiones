@@ -122,6 +122,8 @@ html, body {
   box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);
   transition: all 0.3s;
   white-space: nowrap;
+  position: relative;
+  z-index: 31;
 }
 
 .btn-toggle-panel.active,
@@ -897,6 +899,7 @@ html, body {
     max-height: 100vh;
     display: flex;
     flex-direction: column;
+    z-index: 20;
   }
 
   .side-panel.panel-hidden {
@@ -918,9 +921,10 @@ html, body {
     top: 0;
     background: white;
     border-radius: 0;
-    padding: 60px 14px 14px 14px;
+    padding: 70px 14px 14px 14px;
     max-height: 100vh;
     overflow-y: auto;
+    z-index: 20;
   }
 
   .filters-bar.filters-hidden {
@@ -960,7 +964,11 @@ html, body {
 
   /* Ajustes de header del panel */
   .panel-header-main {
-    padding: 20px 16px 18px;
+    padding: 70px 16px 18px 16px;
+  }
+
+  .panel-header {
+    padding: 70px 20px 20px 20px;
   }
 
   .panel-title {

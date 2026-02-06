@@ -473,7 +473,6 @@ function App() {
     }
   };
 
-  // Obtener anios unicos
   const getYearsUnicos = () => {
     const years = new Set();
     concesiones.forEach(c => {
@@ -491,7 +490,6 @@ function App() {
     return Array.from(years).sort().reverse();
   };
 
-  // Toggle para panel de informacion en movil
   const togglePanel = () => {
     const next = !panelVisible;
     setPanelVisible(next);
@@ -599,7 +597,7 @@ function App() {
             onChange={(e) => setYearFilter(e.target.value)}
             className="filter-select filter-select-year"
           >
-            <option value="">Todos los anios</option>
+            <option value="">Todos los años</option>
             {getYearsUnicos().map(year => (
               <option key={year} value={year}>
                 {year}
