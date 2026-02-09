@@ -5,7 +5,7 @@ import './index.css';
 import concesionesData from './concesiones.json';
 
 // Token de Mapbox
-mapboxgl.accessToken = 'pk.eyJ1IjoicGVwZWxlcGV3IiwiYSI6ImNtbDhjNGsxNzA2aGszZ3B1N2J2eHZyZ2MifQ.DMWYi_J2wZ9wjsHy-s4kXg';
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 // Funcion para convertir coordenadas DMS a decimal
 const dmsToDecimal = (dms) => {
@@ -65,9 +65,11 @@ function App() {
   const [concesiones, setConcesiones] = useState([]);
   const [municipios, setMunicipios] = useState([]);
   const [regionesUnicas, setRegionesUnicas] = useState([]);
+  const [selectedEstado, setSelectedEstado] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedMunicipio, setSelectedMunicipio] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeSearchTerm, setActiveSearchTerm] = useState('');
   const [selectedConcesion, setSelectedConcesion] = useState(null);
   const [filteredConcesiones, setFilteredConcesiones] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -139,8 +141,8 @@ function App() {
     }
     
     // Filtrar por busqueda
-    if (searchTerm.length > 2) {
-      const term = searchTerm.toLowerCase();
+    if (activeSearchTerm.length > 2) {
+      const term = activeSearchTerm.toLowerCase();
       filtered = filtered.filter(c =>
         c.nombre_lote?.toLowerCase().includes(term) ||
         c.titular?.toLowerCase().includes(term) ||
@@ -151,7 +153,7 @@ function App() {
     
     setFilteredConcesiones(filtered);
     setCurrentIndex(0);
-  }, [selectedRegion, selectedMunicipio, searchTerm, concesiones, yearFilter]);
+  }, [selectedRegion, selectedMunicipio, activeSearchTerm, concesiones, yearFilter]);
 
   // Inicializar el mapa
   useEffect(() => {
@@ -159,9 +161,12 @@ function App() {
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/pepelepew/cml8d6k0c00d301s3hjayaqcs',
-      center: [-99.5008, 17.5509],
-      zoom: 8
+      style: import.meta.env.VITE_MAPBOX_STYLE,
+      center: [
+        parseFloat(import.meta.env.VITE_MAP_CENTER_LNG),
+        parseFloat(import.meta.env.VITE_MAP_CENTER_LAT)
+      ],
+      zoom: parseFloat(import.meta.env.VITE_MAP_INITIAL_ZOOM)
     });
 
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
@@ -563,6 +568,16 @@ function App() {
           <span className="filters-bar-title">Filtros de Busqueda</span>
         </div>
         <div className="filters-bar-content">
+          {/* Filtro por Estado */}
+          <select
+            value={selectedEstado}
+            onChange={(e) => setSelectedEstado(e.target.value)}
+            className="filter-select"
+          >
+            <option value="">Todos los estados</option>
+            <option value="Guerrero">Guerrero</option>
+          </select>
+
           {/* Filtro por Region */}
           <select
             value={selectedRegion}
@@ -608,11 +623,23 @@ function App() {
           {/* Barra de busqueda */}
           <input
             type="text"
-            placeholder="Buscar concesion..."
+            placeholder="Buscar por nombre de lote, titular..."
             value={searchTerm}
             onChange={handleSearch}
             className="search-input"
           />
+
+          {/* Boton de busqueda */}
+          <button
+            onClick={() => setActiveSearchTerm(searchTerm)}
+            className="btn-download"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+            Buscar
+          </button>
 
           {/* Boton de descarga Excel */}
           <button
