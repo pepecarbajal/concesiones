@@ -1,0 +1,104 @@
+/* Estilos adicionales para órdenes de exploración */
+
+/* Selector de capas */
+.layer-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.layer-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.layer-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.layer-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.layer-btn svg {
+  flex-shrink: 0;
+}
+
+/* Badge para órdenes de exploración - AMARILLO */
+.orden-badge {
+  background: linear-gradient(135deg, #FFA500 0%, #FF8C00 100%) !important;
+  border-color: #FFA500 !important;
+}
+
+.orden-badge-small {
+  display: inline-block;
+  padding: 2px 6px;
+  background: linear-gradient(135deg, #FFA500 0%, #FF8C00 100%);
+  border-radius: 4px;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Punto de estado para órdenes - AMARILLO */
+.concesion-status-dot.orden {
+  background: #FFA500;
+}
+
+/* Marcador personalizado para órdenes */
+.custom-marker-orden {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.custom-marker-orden:hover {
+  transform: scale(1.15);
+  filter: drop-shadow(0 4px 8px rgba(255, 165, 0, 0.4));
+}
+
+/* Responsive para selector de capas */
+@media (max-width: 768px) {
+  .layer-selector {
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .layer-btn {
+    padding: 12px;
+    font-size: 14px;
+  }
+}
+
+/* Ajustes para la tarjeta de información de órdenes */
+.info-row .info-value a {
+  color: #FFA500;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.info-row .info-value a:hover {
+  color: #FF8C00;
+  text-decoration: underline;
+}
