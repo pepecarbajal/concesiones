@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import './index.css';
 
 // Importar datos
@@ -10,13 +10,13 @@ import Mapa from './componentes/Mapa/Mapa';
 import BarraFiltros from './componentes/BarraFiltros/BarraFiltros';
 import PanelLateral from './componentes/PanelLateral/PanelLateral';
 import BotonesMovil from './componentes/BotonesMovil/BotonesMovil';
+import SelectorTipoElemento from './componentes/SelectorTipoElemento/SelectorTipoElemento';
 
 // Importar utilidades
 import { procesarConcesiones, procesarOrdenesExploracion } from './utilidades/procesadorDatos';
 
 // ============================================================================
 // OPTIMIZACIÓN 1: Procesar datos una sola vez fuera del componente
-// Esto evita reprocesar los datos en cada render
 // ============================================================================
 const CONCESIONES_PROCESADAS = procesarConcesiones(concesionesData);
 const ORDENES_PROCESADAS = procesarOrdenesExploracion(ordenesExploracionData);
@@ -24,7 +24,7 @@ const MUNICIPIOS_UNICOS = [...new Set(CONCESIONES_PROCESADAS.map(c => c.municipi
 const REGIONES_UNICAS = [...new Set(CONCESIONES_PROCESADAS.map(c => c.region).filter(Boolean))].sort();
 
 // ============================================================================
-// OPTIMIZACIÓN 2: Extraer función de filtrado de año para evitar recreación
+// OPTIMIZACIÓN 2: Funciones de filtrado fuera del componente
 // ============================================================================
 const filtrarPorAnio = (elemento, yearFilter) => {
   if (!yearFilter || !elemento.fecha_inicio) return true;
@@ -40,7 +40,7 @@ const filtrarPorAnio = (elemento, yearFilter) => {
 };
 
 // ============================================================================
-// OPTIMIZACIÓN 3: Función de búsqueda optimizada
+// OPTIMIZACIÓN 3: Búsqueda optimizada con toLowerCase pre-calculado
 // ============================================================================
 const buscarEnElemento = (elemento, termino) => {
   const terminoLower = termino.toLowerCase();
@@ -63,9 +63,21 @@ function App() {
   const [selectedEstado, setSelectedEstado] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedMunicipio, setSelectedMunicipio] = useState('');
+  const [yearFilter, setYearFilter] = useState('');
+  
+  // ============================================================================
+  // NUEVO: Estado para tipo de elemento (concesiones, órdenes, o todos)
+  // Por defecto muestra concesiones
+  // ============================================================================
+  const [tipoElemento, setTipoElemento] = useState('concesiones');
+  
+  // ============================================================================
+  // OPTIMIZACIÓN CRÍTICA: Separar el valor del input del término de búsqueda activo
+  // searchTerm: Lo que el usuario escribe (se actualiza instantáneamente)
+  // activeSearchTerm: El término que realmente se usa para filtrar (solo al hacer click)
+  // ============================================================================
   const [searchTerm, setSearchTerm] = useState('');
   const [activeSearchTerm, setActiveSearchTerm] = useState('');
-  const [yearFilter, setYearFilter] = useState('');
   
   // Estados de visualización
   const [selectedConcesion, setSelectedConcesion] = useState(null);
@@ -75,7 +87,7 @@ function App() {
   const [isMobile, setIsMobile] = useState(false);
 
   // ============================================================================
-  // OPTIMIZACIÓN 4: Debounce en resize con cleanup adecuado
+  // OPTIMIZACIÓN: Debounce en resize
   // ============================================================================
   useEffect(() => {
     let timeoutId;
@@ -92,7 +104,7 @@ function App() {
           setPanelVisible(true);
           setFiltersVisible(true);
         }
-      }, 150); // Debounce de 150ms
+      }, 150);
     };
     
     verificarDispositivoMovil();
@@ -104,14 +116,27 @@ function App() {
   }, []);
 
   // ============================================================================
-  // OPTIMIZACIÓN 5: Memoizar elementos filtrados con useMemo
-  // Solo recalcular cuando cambien las dependencias
+  // OPTIMIZACIÓN: Memoizar elementos filtrados
+  // SOLO filtra cuando activeSearchTerm cambia (al hacer click en Buscar)
+  // NUEVO: También filtra por tipo de elemento seleccionado
   // ============================================================================
   const filteredConcesiones = useMemo(() => {
     let datosConcesionesFiltrados = CONCESIONES_PROCESADAS;
     let datosOrdenesFiltrados = ORDENES_PROCESADAS;
     
-    // Filtrar por región (más rápido usando filter directo)
+    // ============================================================================
+    // NUEVO: Filtrar por tipo de elemento PRIMERO
+    // ============================================================================
+    if (tipoElemento === 'concesiones') {
+      // Solo concesiones, no órdenes
+      datosOrdenesFiltrados = [];
+    } else if (tipoElemento === 'ordenes') {
+      // Solo órdenes, no concesiones
+      datosConcesionesFiltrados = [];
+    }
+    // Si tipoElemento === 'todos', se mantienen ambos
+    
+    // Filtrar por región
     if (selectedRegion) {
       datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => c.region === selectedRegion);
     }
@@ -128,7 +153,10 @@ function App() {
       );
     }
     
-    // Filtrar por búsqueda SOLO cuando activeSearchTerm tenga valor
+    // ============================================================================
+    // CLAVE: Solo filtra por búsqueda cuando activeSearchTerm tiene valor
+    // Esto significa que el input puede actualizarse libremente sin causar filtrado
+    // ============================================================================
     if (activeSearchTerm.length > 2) {
       datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c =>
         buscarEnElemento(c, activeSearchTerm)
@@ -139,19 +167,16 @@ function App() {
       );
     }
     
-    // Combinar ambas listas
     return [...datosConcesionesFiltrados, ...datosOrdenesFiltrados];
-  }, [selectedRegion, selectedMunicipio, activeSearchTerm, yearFilter]);
+  }, [selectedRegion, selectedMunicipio, activeSearchTerm, yearFilter, tipoElemento]);
 
-  // ============================================================================
-  // OPTIMIZACIÓN 6: Resetear índice solo cuando cambien elementos filtrados
-  // ============================================================================
+  // Resetear índice cuando cambien elementos filtrados
   useEffect(() => {
     setCurrentIndex(0);
   }, [filteredConcesiones.length]);
 
   // ============================================================================
-  // OPTIMIZACIÓN 7: Funciones de navegación optimizadas con useCallback
+  // Funciones de navegación
   // ============================================================================
   const navegarAnterior = useCallback(() => {
     if (filteredConcesiones.length === 0) return;
@@ -170,7 +195,7 @@ function App() {
   }, [currentIndex, filteredConcesiones]);
 
   // ============================================================================
-  // OPTIMIZACIÓN 8: Handlers memoizados con useCallback
+  // Handlers de filtros
   // ============================================================================
   const manejarCambioRegion = useCallback((region) => {
     setSelectedRegion(region);
@@ -185,13 +210,22 @@ function App() {
     setSelectedConcesion(null);
   }, []);
 
+  // ============================================================================
+  // CLAVE: Handler de búsqueda que NO causa re-render del filtrado
+  // Solo actualiza el estado local del input
+  // ============================================================================
   const manejarBusqueda = useCallback((termino) => {
     setSearchTerm(termino);
+    // NO actualiza activeSearchTerm aquí - eso solo pasa al hacer click en Buscar
   }, []);
 
+  // ============================================================================
+  // CLAVE: Solo al hacer click en "Buscar" se activa el filtrado real
+  // ============================================================================
   const manejarActivarBusqueda = useCallback(() => {
     setActiveSearchTerm(searchTerm);
     
+    // Limpiar otros filtros cuando hay búsqueda
     if (searchTerm.length > 0) {
       setSelectedRegion('');
       setSelectedMunicipio('');
@@ -202,6 +236,15 @@ function App() {
     setSearchTerm('');
     setActiveSearchTerm('');
     setSelectedConcesion(null);
+  }, []);
+
+  // ============================================================================
+  // NUEVO: Handler para cambiar tipo de elemento
+  // ============================================================================
+  const manejarCambiarTipo = useCallback((tipo) => {
+    setTipoElemento(tipo);
+    setSelectedConcesion(null);
+    setCurrentIndex(0);
   }, []);
 
   const manejarSeleccionElemento = useCallback((elemento) => {
@@ -239,7 +282,7 @@ function App() {
   }, [isMobile]);
 
   // ============================================================================
-  // OPTIMIZACIÓN 9: Memoizar municipios filtrados
+  // Memoizar municipios y años
   // ============================================================================
   const obtenerMunicipiosFiltrados = useMemo(() => {
     if (!selectedRegion) {
@@ -252,9 +295,6 @@ function App() {
     )].sort();
   }, [selectedRegion]);
 
-  // ============================================================================
-  // OPTIMIZACIÓN 10: Memoizar años únicos (calcular una sola vez)
-  // ============================================================================
   const obtenerAniosUnicos = useMemo(() => {
     const anios = new Set();
     CONCESIONES_PROCESADAS.forEach(c => {
@@ -270,7 +310,7 @@ function App() {
       }
     });
     return Array.from(anios).sort().reverse();
-  }, []); // Solo calcular una vez
+  }, []);
 
   return (
     <div className="app-container">
@@ -281,13 +321,23 @@ function App() {
         onToggleFiltros={alternarFiltros}
       />
 
+      {/* ============================================================================
+          NUEVO: Selector de tipo de elemento (Concesiones / Órdenes / Todos)
+          ============================================================================ */}
+      <SelectorTipoElemento
+        tipoSeleccionado={tipoElemento}
+        onCambiarTipo={manejarCambiarTipo}
+        totalConcesiones={CONCESIONES_PROCESADAS.length}
+        totalOrdenes={ORDENES_PROCESADAS.length}
+      />
+
       <Mapa
         elementosFiltrados={filteredConcesiones}
         elementoSeleccionado={selectedConcesion}
         onSeleccionarElemento={manejarSeleccionElemento}
         regionSeleccionada={selectedRegion}
         municipioSeleccionado={selectedMunicipio}
-        terminoBusqueda={searchTerm}
+        terminoBusqueda={activeSearchTerm}
       />
 
       <BarraFiltros

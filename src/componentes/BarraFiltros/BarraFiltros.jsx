@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { descargarExcel } from './utilidades/exportadorExcel';
 
-const BarraFiltros = ({
+// ============================================================================
+// OPTIMIZACIÓN: Memoizar componente para evitar re-renders innecesarios
+// ============================================================================
+const BarraFiltros = memo(({
   visible,
   panelVisible,
   estadoSeleccionado,
@@ -99,6 +102,12 @@ const BarraFiltros = ({
 
         <form onSubmit={manejarEnvioFormulario} style={{ display: 'contents' }}>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* ============================================================================
+                CRÍTICO: Input NO controlado por el estado de filtrado
+                - Se actualiza instantáneamente con cada tecla
+                - NO causa re-render de filteredConcesiones
+                - Solo searchTerm se actualiza, no activeSearchTerm
+                ============================================================================ */}
             <input
               type="text"
               placeholder="Buscar por nombre de lote, titular, orden..."
@@ -131,6 +140,7 @@ const BarraFiltros = ({
             )}
           </div>
 
+          {/* Botón de búsqueda - AQUÍ es donde se activa el filtrado real */}
           <button
             type="submit"
             className="btn-download"
@@ -157,6 +167,9 @@ const BarraFiltros = ({
       </div>
     </div>
   );
-};
+});
+
+// Agregar displayName para debugging
+BarraFiltros.displayName = 'BarraFiltros';
 
 export default BarraFiltros;

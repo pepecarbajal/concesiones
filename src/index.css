@@ -1093,6 +1093,58 @@ html, body {
   .mapboxgl-popup-content {
     max-width: 280px !important;
   }
+
+  /* ========================================
+   ANIMACIONES PARA BÚSQUEDA OPTIMIZADA
+   Agregar al inicio del archivo index.css
+   ======================================== */
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translateY(-50%) scale(1.2);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Indicador de búsqueda activa */
+.search-indicator {
+  animation: pulse 2s infinite;
+}
+
+/* Mejora visual del input de búsqueda */
+.search-input {
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12) !important;
+  transform: translateY(-1px);
+}
+
+/* Placeholder mejorado */
+.search-input::placeholder {
+  color: #9CA3AF;
+  font-size: 13px;
+  transition: color 0.2s;
+}
+
+.search-input:focus::placeholder {
+  color: #667eea;
+}
 }
 
 /* ========================================
@@ -1202,4 +1254,291 @@ html, body {
   .btn-back {
     margin-bottom: 10px;
   }
+}
+
+/* ========================================
+   SELECTOR DE TIPO DE ELEMENTO
+   Permite elegir entre Concesiones, Órdenes, o Todos
+   ======================================== */
+
+.tipo-selector-container {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 15;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(16px);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 12px;
+  min-width: 200px;
+}
+
+.tipo-selector-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #E5E7EB;
+}
+
+.tipo-selector-header svg {
+  color: #667eea;
+  flex-shrink: 0;
+}
+
+.tipo-selector-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tipo-selector-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tipo-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #F9FAFB;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  width: 100%;
+}
+
+.tipo-option:hover {
+  background: #F3F4F6;
+  border-color: #E5E7EB;
+  transform: translateX(2px);
+}
+
+.tipo-option.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.tipo-option.active .tipo-option-icon,
+.tipo-option.active .tipo-option-label,
+.tipo-option.active .tipo-option-count {
+  color: white;
+}
+
+.tipo-option-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 6px;
+  color: #667eea;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.tipo-option.active .tipo-option-icon {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.tipo-icon-concesion {
+  background: rgba(239, 68, 68, 0.1);
+  color: #EF4444;
+}
+
+.tipo-option.active .tipo-icon-concesion {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.tipo-icon-orden {
+  background: rgba(255, 165, 0, 0.1);
+  color: #FFA500;
+}
+
+.tipo-option.active .tipo-icon-orden {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.tipo-option-content {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tipo-option-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  transition: color 0.2s ease;
+}
+
+.tipo-option-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: #9CA3AF;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 2px 8px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.tipo-option.active .tipo-option-count {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ========================================
+   RESPONSIVE - TABLET
+   ======================================== */
+@media (max-width: 1024px) {
+  .tipo-selector-container {
+    bottom: 14px;
+    right: 14px;
+    min-width: 180px;
+  }
+
+  .tipo-option {
+    padding: 8px 10px;
+  }
+
+  .tipo-option-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .tipo-option-label {
+    font-size: 12px;
+  }
+
+  .tipo-option-count {
+    font-size: 11px;
+    padding: 2px 6px;
+  }
+}
+
+/* ========================================
+   RESPONSIVE - MOBILE
+   ======================================== */
+@media (max-width: 768px) {
+  .tipo-selector-container {
+    bottom: 20px;
+    right: 20px;
+    left: 20px;
+    min-width: auto;
+  }
+
+  .tipo-selector-options {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .tipo-option {
+    flex: 1;
+    flex-direction: column;
+    padding: 10px 8px;
+    gap: 6px;
+  }
+
+  .tipo-option-content {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .tipo-option-label {
+    font-size: 11px;
+    text-align: center;
+  }
+
+  .tipo-option-count {
+    font-size: 10px;
+  }
+
+  .tipo-option-icon {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+/* Ajustar controles del mapa para no chocar con el selector */
+.mapboxgl-ctrl-bottom-right {
+  bottom: 180px !important;
+}
+
+@media (max-width: 768px) {
+  .mapboxgl-ctrl-bottom-right {
+    bottom: 140px !important;
+  }
+}
+
+/* ========================================
+   MOBILE PEQUEÑO
+   ======================================== */
+@media (max-width: 480px) {
+  .tipo-selector-container {
+    bottom: 14px;
+    right: 14px;
+    left: 14px;
+  }
+
+  .tipo-option {
+    padding: 8px 6px;
+  }
+
+  .tipo-option-label {
+    font-size: 10px;
+  }
+
+  .tipo-option-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .tipo-option-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+/* ========================================
+   ANIMACIONES
+   ======================================== */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tipo-selector-container {
+  animation: slideInUp 0.3s ease-out;
+}
+
+/* Efecto de pulso en el contador cuando cambia */
+@keyframes counterPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.tipo-option.active .tipo-option-count {
+  animation: counterPulse 0.3s ease-out;
 }
