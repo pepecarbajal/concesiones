@@ -1,15 +1,32 @@
+// ============================================================================
+// OPTIMIZACIÓN: Cache para conversiones DMS a Decimal
+// Evita reconvertir las mismas coordenadas múltiples veces
+// ============================================================================
+const cacheDMSaDecimal = new Map();
+
 /**
  * Convierte coordenadas en formato DMS (Grados, Minutos, Segundos) a formato decimal
+ * OPTIMIZADO con caché para evitar recálculos
  * @param {string} dms - Coordenada en formato DMS (ej: "16°51'18.96"N")
  * @returns {number|null} - Coordenada en formato decimal o null si no es válida
  */
 export const convertirDMSaDecimal = (dms) => {
   if (!dms) return null;
   
+  // ============================================================================
+  // OPTIMIZACIÓN: Verificar caché primero
+  // ============================================================================
+  if (cacheDMSaDecimal.has(dms)) {
+    return cacheDMSaDecimal.get(dms);
+  }
+  
   const regex = /(\d+)°(\d+)′([\d.]+)″([NSEW])/;
   const coincidencia = dms.match(regex);
   
-  if (!coincidencia) return null;
+  if (!coincidencia) {
+    cacheDMSaDecimal.set(dms, null);
+    return null;
+  }
   
   const grados = parseFloat(coincidencia[1]);
   const minutos = parseFloat(coincidencia[2]);
@@ -22,46 +39,65 @@ export const convertirDMSaDecimal = (dms) => {
     decimal = -decimal;
   }
   
+  // Guardar en caché
+  cacheDMSaDecimal.set(dms, decimal);
+  
   return decimal;
 };
 
 /**
  * Procesa los datos de concesiones mineras y convierte sus coordenadas
+ * OPTIMIZADO: Solo filtra null al final, reduce operaciones
  * @param {Array} datos - Array de objetos con datos de concesiones
  * @returns {Array} - Array de concesiones procesadas con coordenadas decimales
  */
 export const procesarConcesiones = (datos) => {
-  return datos.map(concesion => {
+  const resultado = [];
+  
+  for (let i = 0; i < datos.length; i++) {
+    const concesion = datos[i];
     const latitud = convertirDMSaDecimal(concesion.latitud);
     const longitud = convertirDMSaDecimal(concesion.longitud);
     
-    return {
-      ...concesion,
-      coords: longitud && latitud ? [longitud, latitud] : null
-    };
-  }).filter(c => c.coords !== null);
+    // Solo agregar si tiene coordenadas válidas
+    if (longitud !== null && latitud !== null) {
+      resultado.push({
+        ...concesion,
+        coords: [longitud, latitud]
+      });
+    }
+  }
+  
+  return resultado;
 };
 
 /**
  * Convierte un array de vértices DMS a coordenadas decimales
+ * OPTIMIZADO con loop tradicional para mejor rendimiento
  * @param {Array} vertices - Array de objetos con latitud y longitud en DMS
  * @returns {Array} - Array de coordenadas [lng, lat] en formato decimal
  */
 export const convertirVerticesADecimal = (vertices) => {
-  if (!vertices || !Array.isArray(vertices)) return [];
+  if (!vertices || !Array.isArray(vertices) || vertices.length === 0) return [];
   
-  return vertices.map(vertice => {
+  const resultado = [];
+  
+  for (let i = 0; i < vertices.length; i++) {
+    const vertice = vertices[i];
     const lat = convertirDMSaDecimal(vertice.latitud);
     const lng = convertirDMSaDecimal(vertice.longitud);
     
-    if (lat === null || lng === null) return null;
-    
-    return [lng, lat]; // GeoJSON usa [longitud, latitud]
-  }).filter(coord => coord !== null);
+    if (lat !== null && lng !== null) {
+      resultado.push([lng, lat]); // GeoJSON usa [longitud, latitud]
+    }
+  }
+  
+  return resultado;
 };
 
 /**
  * Calcula el centroide de un polígono
+ * OPTIMIZADO con loop tradicional
  * @param {Array} coordenadas - Array de coordenadas [lng, lat]
  * @returns {Array} - Coordenada central [lng, lat]
  */
@@ -70,26 +106,27 @@ export const calcularCentroide = (coordenadas) => {
   
   let sumLng = 0;
   let sumLat = 0;
+  const len = coordenadas.length;
   
-  coordenadas.forEach(coord => {
-    sumLng += coord[0];
-    sumLat += coord[1];
-  });
+  for (let i = 0; i < len; i++) {
+    sumLng += coordenadas[i][0];
+    sumLat += coordenadas[i][1];
+  }
   
-  return [
-    sumLng / coordenadas.length,
-    sumLat / coordenadas.length
-  ];
+  return [sumLng / len, sumLat / len];
 };
 
 /**
  * Procesa los datos de órdenes de exploración y convierte sus coordenadas
- * Ahora maneja tanto puntos centrales como polígonos de perímetro
+ * OPTIMIZADO: Procesa puntos centrales y polígonos eficientemente
  * @param {Array} datos - Array de objetos con datos de órdenes de exploración
  * @returns {Array} - Array de órdenes procesadas con coordenadas decimales
  */
 export const procesarOrdenesExploracion = (datos) => {
-  return datos.map(orden => {
+  const resultado = [];
+  
+  for (let i = 0; i < datos.length; i++) {
+    const orden = datos[i];
     const latitud = convertirDMSaDecimal(orden.latitud);
     const longitud = convertirDMSaDecimal(orden.longitud);
     
@@ -113,18 +150,23 @@ export const procesarOrdenesExploracion = (datos) => {
     }
     
     // Si no hay coordenadas centrales pero sí hay polígono, calcular centroide
-    let coordsCentrales = longitud && latitud ? [longitud, latitud] : null;
+    let coordsCentrales = longitud !== null && latitud !== null ? [longitud, latitud] : null;
     if (!coordsCentrales && coordenadasPoligono) {
       coordsCentrales = calcularCentroide(coordenadasPoligono);
     }
     
-    return {
-      ...orden,
-      coords: coordsCentrales, // Punto central
-      coordenadasPoligono: coordenadasPoligono, // Perímetro completo
-      tipo: 'orden_exploracion'
-    };
-  }).filter(o => o.coords !== null);
+    // Solo agregar si tiene coordenadas centrales válidas
+    if (coordsCentrales !== null) {
+      resultado.push({
+        ...orden,
+        coords: coordsCentrales, // Punto central
+        coordenadasPoligono: coordenadasPoligono, // Perímetro completo
+        tipo: 'orden_exploracion'
+      });
+    }
+  }
+  
+  return resultado;
 };
 
 /**
@@ -140,8 +182,16 @@ export const extraerAnio = (fecha) => {
   
   let anio = partes[2];
   if (anio.length === 2) {
-    anio = parseInt(anio) > 50 ? '19' + anio : '20' + anio;
+    const anioNum = parseInt(anio);
+    anio = anioNum > 50 ? '19' + anio : '20' + anio;
   }
   
   return anio;
+};
+
+// ============================================================================
+// OPTIMIZACIÓN: Función para limpiar caché si es necesario
+// ============================================================================
+export const limpiarCacheDMS = () => {
+  cacheDMSaDecimal.clear();
 };

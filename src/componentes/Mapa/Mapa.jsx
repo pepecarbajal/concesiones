@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, memo } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { COORDENADAS_REGIONES, NIVELES_ZOOM, LIMITES_VISUALIZACION } from '../../utilidades/constantes';
@@ -16,7 +16,10 @@ import {
 // Token de Mapbox
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
-const Mapa = ({
+// ============================================================================
+// OPTIMIZACIÓN: Memoizar componente para evitar re-renders innecesarios
+// ============================================================================
+const Mapa = memo(({
   elementosFiltrados,
   elementoSeleccionado,
   onSeleccionarElemento,
@@ -28,10 +31,14 @@ const Mapa = ({
   const mapa = useRef(null);
   const marcadores = useRef([]);
   const popupCoordenadas = useRef(null);
-  const estaNavegando = useRef(false);
   const poligonosInicializados = useRef(false);
+  
+  // ============================================================================
+  // OPTIMIZACIÓN: Guardar último elemento seleccionado para evitar navegación duplicada
+  // ============================================================================
+  const ultimoElementoSeleccionado = useRef(null);
 
-  // Inicializar el mapa
+  // Inicializar el mapa una sola vez
   useEffect(() => {
     if (mapa.current) return;
 
@@ -57,7 +64,6 @@ const Mapa = ({
         
         // Configurar eventos de click en polígonos
         configurarEventosPoligonos(mapa.current, (propiedades) => {
-          // Buscar la orden completa en los elementos filtrados
           const orden = elementosFiltrados.find(e => 
             e.tipo === 'orden_exploracion' && e.num_orden === propiedades.num_orden
           );
@@ -68,9 +74,19 @@ const Mapa = ({
         });
       }
     });
-  }, []);
 
-  // Mostrar popup con coordenadas del elemento
+    // Cleanup al desmontar
+    return () => {
+      if (mapa.current) {
+        mapa.current.remove();
+        mapa.current = null;
+      }
+    };
+  }, []); // Solo inicializar una vez
+
+  // ============================================================================
+  // OPTIMIZACIÓN: Memoizar función de popup
+  // ============================================================================
   const mostrarPopupCoordenadas = useCallback((elemento) => {
     if (popupCoordenadas.current) {
       popupCoordenadas.current.remove();
@@ -89,18 +105,18 @@ const Mapa = ({
       .addTo(mapa.current);
   }, []);
 
-  // Navegar a un elemento en el mapa
+  // ============================================================================
+  // OPTIMIZACIÓN: Memoizar navegación a elemento
+  // ============================================================================
   const navegarAElemento = useCallback((elemento) => {
     if (!mapa.current || !elemento) return;
 
     const esOrden = elemento.tipo === 'orden_exploracion';
     
-    // Si es una orden con polígono, ajustar vista al polígono completo
     if (esOrden && elemento.coordenadasPoligono && elemento.coordenadasPoligono.length > 0) {
       ajustarVistaAPoligono(mapa.current, elemento.coordenadasPoligono, 80);
       resaltarPoligono(mapa.current, elemento.num_orden);
     } else {
-      // Para concesiones o órdenes sin polígono, hacer zoom al punto
       const nivelZoom = esOrden ? NIVELES_ZOOM.ordenExploracion : NIVELES_ZOOM.concesion;
       
       mapa.current.flyTo({
@@ -117,10 +133,29 @@ const Mapa = ({
     mostrarPopupCoordenadas(elemento);
   }, [mostrarPopupCoordenadas]);
 
-  // Actualizar cuando cambia el elemento seleccionado
+  // ============================================================================
+  // OPTIMIZACIÓN: Actualizar cuando cambia elemento seleccionado
+  // Solo navegar si es diferente al último
+  // ============================================================================
   useEffect(() => {
-    if (elementoSeleccionado && !estaNavegando.current) {
+    if (!elementoSeleccionado) {
+      ultimoElementoSeleccionado.current = null;
+      return;
+    }
+
+    const esOrden = elementoSeleccionado.tipo === 'orden_exploracion';
+    const idActual = esOrden ? elementoSeleccionado.num_orden : elementoSeleccionado.titulo;
+    
+    const ultimoId = ultimoElementoSeleccionado.current
+      ? (ultimoElementoSeleccionado.current.tipo === 'orden_exploracion'
+          ? ultimoElementoSeleccionado.current.num_orden
+          : ultimoElementoSeleccionado.current.titulo)
+      : null;
+
+    // Solo navegar si es un elemento diferente
+    if (idActual !== ultimoId) {
       navegarAElemento(elementoSeleccionado);
+      ultimoElementoSeleccionado.current = elementoSeleccionado;
     }
   }, [elementoSeleccionado, navegarAElemento]);
 
@@ -163,7 +198,10 @@ const Mapa = ({
     }
   }, [municipioSeleccionado, elementosFiltrados]);
 
-  // Actualizar marcadores cuando cambien los elementos filtrados
+  // ============================================================================
+  // OPTIMIZACIÓN: Actualizar marcadores de forma más eficiente
+  // Solo actualizar cuando cambien los elementos filtrados
+  // ============================================================================
   useEffect(() => {
     if (!mapa.current) return;
 
@@ -176,8 +214,10 @@ const Mapa = ({
       actualizarPoligonos(mapa.current, elementosFiltrados);
     }
 
-    // Crear nuevos marcadores
-    elementosFiltrados.forEach(elemento => {
+    // ============================================================================
+    // OPTIMIZACIÓN: Crear marcadores en lote para mejor rendimiento
+    // ============================================================================
+    const nuevosMarcadores = elementosFiltrados.map(elemento => {
       const elementoDOM = elemento.tipo === 'orden_exploracion'
         ? crearMarcadorOrden()
         : crearMarcadorConcesion(elemento.estado);
@@ -191,8 +231,10 @@ const Mapa = ({
         onSeleccionarElemento(elemento);
       });
 
-      marcadores.current.push(marcador);
+      return marcador;
     });
+
+    marcadores.current = nuevosMarcadores;
 
     // Ajustar vista para mostrar todos los marcadores
     if (
@@ -211,6 +253,9 @@ const Mapa = ({
   }, [elementosFiltrados, onSeleccionarElemento, municipioSeleccionado, regionSeleccionada, terminoBusqueda]);
 
   return <div ref={contenedorMapa} className="map-container" />;
-};
+});
+
+// Agregar displayName para debugging
+Mapa.displayName = 'Mapa';
 
 export default Mapa;

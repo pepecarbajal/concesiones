@@ -1,20 +1,47 @@
-import React from 'react';
+import React, { useMemo, useCallback, memo } from 'react';
 import TarjetaEstadistica from './componentes/TarjetaEstadistica';
 import ElementoLista from './componentes/ElementoLista';
 import { LIMITES_VISUALIZACION } from '../../utilidades/constantes';
 
-const VistaLista = ({ elementos, onSeleccionarElemento }) => {
-  // Calcular estadísticas
-  const totalElementos = elementos.length;
-  const municipiosUnicos = [...new Set(elementos.map(e => e.municipio))].length;
-  const elementosVigentes = elementos.filter(e => e.estado === 'Vigente').length;
-  const superficieTotal = elementos.reduce(
-    (suma, e) => suma + parseFloat(e.superficie || 0), 
-    0
-  ).toFixed(0);
+// ============================================================================
+// OPTIMIZACIÓN: Memoizar todo el componente
+// ============================================================================
+const VistaLista = memo(({ elementos, onSeleccionarElemento }) => {
+  // ============================================================================
+  // OPTIMIZACIÓN: Calcular estadísticas con useMemo para evitar recálculos
+  // ============================================================================
+  const estadisticas = useMemo(() => {
+    const totalElementos = elementos.length;
+    const municipiosUnicos = new Set(elementos.map(e => e.municipio)).size;
+    const elementosVigentes = elementos.filter(e => e.estado === 'Vigente').length;
+    const superficieTotal = elementos.reduce(
+      (suma, e) => suma + parseFloat(e.superficie || 0), 
+      0
+    ).toFixed(0);
 
-  const elementosMostrados = elementos.slice(0, LIMITES_VISUALIZACION.maximoElementosLista);
+    return {
+      totalElementos,
+      municipiosUnicos,
+      elementosVigentes,
+      superficieTotal
+    };
+  }, [elementos]);
+
+  // ============================================================================
+  // OPTIMIZACIÓN: Slice de elementos para mostrar (evitar renderizar miles)
+  // ============================================================================
+  const elementosMostrados = useMemo(() => {
+    return elementos.slice(0, LIMITES_VISUALIZACION.maximoElementosLista);
+  }, [elementos]);
+
   const hayMasElementos = elementos.length > LIMITES_VISUALIZACION.maximoElementosLista;
+
+  // ============================================================================
+  // OPTIMIZACIÓN: Memoizar handler con useCallback
+  // ============================================================================
+  const manejarClickElemento = useCallback((elemento) => {
+    onSeleccionarElemento(elemento);
+  }, [onSeleccionarElemento]);
 
   return (
     <div className="side-panel-content">
@@ -32,25 +59,25 @@ const VistaLista = ({ elementos, onSeleccionarElemento }) => {
           <TarjetaEstadistica 
             icono="chart"
             etiqueta="Total" 
-            valor={totalElementos}
+            valor={estadisticas.totalElementos}
             color="color-purple"
           />
           <TarjetaEstadistica 
             icono="building"
             etiqueta="Municipios" 
-            valor={municipiosUnicos}
+            valor={estadisticas.municipiosUnicos}
             color="color-violet"
           />
           <TarjetaEstadistica 
             icono="check"
             etiqueta="Vigentes" 
-            valor={elementosVigentes}
+            valor={estadisticas.elementosVigentes}
             color="color-green"
           />
           <TarjetaEstadistica 
             icono="area"
             etiqueta="Superficie" 
-            valor={`${superficieTotal} ha`}
+            valor={`${estadisticas.superficieTotal} ha`}
             color="color-orange"
             pequeno
           />
@@ -58,23 +85,29 @@ const VistaLista = ({ elementos, onSeleccionarElemento }) => {
 
         <div>
           <h3 className="concesiones-list-header">
-            {totalElementos > 0 
-              ? `Elementos visibles (${totalElementos})`
+            {estadisticas.totalElementos > 0 
+              ? `Elementos visibles (${estadisticas.totalElementos})`
               : 'No hay elementos que mostrar'}
           </h3>
 
           <div className="concesiones-list">
-            {elementosMostrados.map(elemento => (
-              <ElementoLista
-                key={elemento.tipo === 'orden_exploracion' ? elemento.num_orden : elemento.titulo}
-                elemento={elemento}
-                onClick={() => onSeleccionarElemento(elemento)}
-              />
-            ))}
+            {elementosMostrados.map(elemento => {
+              const key = elemento.tipo === 'orden_exploracion' 
+                ? elemento.num_orden 
+                : elemento.titulo;
+              
+              return (
+                <ElementoLista
+                  key={key}
+                  elemento={elemento}
+                  onClick={manejarClickElemento}
+                />
+              );
+            })}
             
             {hayMasElementos && (
               <div className="list-footer">
-                Mostrando {LIMITES_VISUALIZACION.maximoElementosLista} de {totalElementos} elementos
+                Mostrando {LIMITES_VISUALIZACION.maximoElementosLista} de {estadisticas.totalElementos} elementos
               </div>
             )}
           </div>
@@ -82,6 +115,9 @@ const VistaLista = ({ elementos, onSeleccionarElemento }) => {
       </div>
     </div>
   );
-};
+});
+
+// Agregar displayName para debugging
+VistaLista.displayName = 'VistaLista';
 
 export default VistaLista;

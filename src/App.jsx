@@ -14,13 +14,51 @@ import BotonesMovil from './componentes/BotonesMovil/BotonesMovil';
 // Importar utilidades
 import { procesarConcesiones, procesarOrdenesExploracion } from './utilidades/procesadorDatos';
 
-function App() {
-  // Estados principales
-  const [concesiones, setConcesiones] = useState([]);
-  const [ordenesExploracion, setOrdenesExploracion] = useState([]);
-  const [municipios, setMunicipios] = useState([]);
-  const [regionesUnicas, setRegionesUnicas] = useState([]);
+// ============================================================================
+// OPTIMIZACIÓN 1: Procesar datos una sola vez fuera del componente
+// Esto evita reprocesar los datos en cada render
+// ============================================================================
+const CONCESIONES_PROCESADAS = procesarConcesiones(concesionesData);
+const ORDENES_PROCESADAS = procesarOrdenesExploracion(ordenesExploracionData);
+const MUNICIPIOS_UNICOS = [...new Set(CONCESIONES_PROCESADAS.map(c => c.municipio))].sort();
+const REGIONES_UNICAS = [...new Set(CONCESIONES_PROCESADAS.map(c => c.region).filter(Boolean))].sort();
+
+// ============================================================================
+// OPTIMIZACIÓN 2: Extraer función de filtrado de año para evitar recreación
+// ============================================================================
+const filtrarPorAnio = (elemento, yearFilter) => {
+  if (!yearFilter || !elemento.fecha_inicio) return true;
   
+  const partes = elemento.fecha_inicio.split('/');
+  if (partes.length !== 3) return false;
+  
+  let anio = partes[2];
+  if (anio.length === 2) {
+    anio = parseInt(anio) > 50 ? '19' + anio : '20' + anio;
+  }
+  return anio === yearFilter;
+};
+
+// ============================================================================
+// OPTIMIZACIÓN 3: Función de búsqueda optimizada
+// ============================================================================
+const buscarEnElemento = (elemento, termino) => {
+  const terminoLower = termino.toLowerCase();
+  const esOrden = elemento.tipo === 'orden_exploracion';
+  
+  if (esOrden) {
+    return elemento.nombre?.toLowerCase().includes(terminoLower) ||
+           elemento.municipio?.toLowerCase().includes(terminoLower) ||
+           elemento.num_orden?.toLowerCase().includes(terminoLower);
+  }
+  
+  return elemento.nombre_lote?.toLowerCase().includes(terminoLower) ||
+         elemento.titular?.toLowerCase().includes(terminoLower) ||
+         elemento.municipio?.toLowerCase().includes(terminoLower) ||
+         elemento.titulo?.toString().toLowerCase().includes(terminoLower);
+};
+
+function App() {
   // Estados de filtros
   const [selectedEstado, setSelectedEstado] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('');
@@ -31,52 +69,49 @@ function App() {
   
   // Estados de visualización
   const [selectedConcesion, setSelectedConcesion] = useState(null);
-  const [filteredConcesiones, setFilteredConcesiones] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [panelVisible, setPanelVisible] = useState(true);
   const [filtersVisible, setFiltersVisible] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Detectar dispositivo móvil
+  // ============================================================================
+  // OPTIMIZACIÓN 4: Debounce en resize con cleanup adecuado
+  // ============================================================================
   useEffect(() => {
+    let timeoutId;
+    
     const verificarDispositivoMovil = () => {
-      const esMovil = window.innerWidth <= 768;
-      setIsMobile(esMovil);
-      if (esMovil) {
-        setPanelVisible(false);
-        setFiltersVisible(false);
-      } else {
-        setPanelVisible(true);
-        setFiltersVisible(true);
-      }
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        const esMovil = window.innerWidth <= 768;
+        setIsMobile(esMovil);
+        if (esMovil) {
+          setPanelVisible(false);
+          setFiltersVisible(false);
+        } else {
+          setPanelVisible(true);
+          setFiltersVisible(true);
+        }
+      }, 150); // Debounce de 150ms
     };
     
     verificarDispositivoMovil();
     window.addEventListener('resize', verificarDispositivoMovil);
-    return () => window.removeEventListener('resize', verificarDispositivoMovil);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', verificarDispositivoMovil);
+    };
   }, []);
 
-  // Cargar y procesar datos iniciales
-  useEffect(() => {
-    const datosProcesados = procesarConcesiones(concesionesData);
-    setConcesiones(datosProcesados);
+  // ============================================================================
+  // OPTIMIZACIÓN 5: Memoizar elementos filtrados con useMemo
+  // Solo recalcular cuando cambien las dependencias
+  // ============================================================================
+  const filteredConcesiones = useMemo(() => {
+    let datosConcesionesFiltrados = CONCESIONES_PROCESADAS;
+    let datosOrdenesFiltrados = ORDENES_PROCESADAS;
     
-    const municipiosUnicos = [...new Set(datosProcesados.map(c => c.municipio))].sort();
-    setMunicipios(municipiosUnicos);
-
-    const regionesUnicas = [...new Set(datosProcesados.map(c => c.region).filter(Boolean))].sort();
-    setRegionesUnicas(regionesUnicas);
-    
-    const ordenesProcesadas = procesarOrdenesExploracion(ordenesExploracionData);
-    setOrdenesExploracion(ordenesProcesadas);
-  }, []);
-
-  // Aplicar filtros a los datos
-  useEffect(() => {
-    let datosConcesionesFiltrados = [...concesiones];
-    let datosOrdenesFiltrados = [...ordenesExploracion];
-    
-    // Filtrar por región
+    // Filtrar por región (más rápido usando filter directo)
     if (selectedRegion) {
       datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => c.region === selectedRegion);
     }
@@ -88,68 +123,61 @@ function App() {
     
     // Filtrar por año
     if (yearFilter) {
-      datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => {
-        if (c.fecha_inicio) {
-          const partes = c.fecha_inicio.split('/');
-          if (partes.length === 3) {
-            let anio = partes[2];
-            if (anio.length === 2) {
-              anio = parseInt(anio) > 50 ? '19' + anio : '20' + anio;
-            }
-            return anio === yearFilter;
-          }
-        }
-        return false;
-      });
+      datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => 
+        filtrarPorAnio(c, yearFilter)
+      );
     }
     
-    // Filtrar por término de búsqueda SOLO cuando activeSearchTerm tenga valor
+    // Filtrar por búsqueda SOLO cuando activeSearchTerm tenga valor
     if (activeSearchTerm.length > 2) {
-      const termino = activeSearchTerm.toLowerCase();
       datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c =>
-        c.nombre_lote?.toLowerCase().includes(termino) ||
-        c.titular?.toLowerCase().includes(termino) ||
-        c.municipio?.toLowerCase().includes(termino) ||
-        c.titulo?.toString().toLowerCase().includes(termino)
+        buscarEnElemento(c, activeSearchTerm)
       );
       
       datosOrdenesFiltrados = datosOrdenesFiltrados.filter(o =>
-        o.nombre?.toLowerCase().includes(termino) ||
-        o.municipio?.toLowerCase().includes(termino) ||
-        o.num_orden?.toLowerCase().includes(termino)
+        buscarEnElemento(o, activeSearchTerm)
       );
     }
     
     // Combinar ambas listas
-    const datosCombinados = [...datosConcesionesFiltrados, ...datosOrdenesFiltrados];
-    setFilteredConcesiones(datosCombinados);
-    setCurrentIndex(0);
-  }, [selectedRegion, selectedMunicipio, activeSearchTerm, concesiones, ordenesExploracion, yearFilter]);
+    return [...datosConcesionesFiltrados, ...datosOrdenesFiltrados];
+  }, [selectedRegion, selectedMunicipio, activeSearchTerm, yearFilter]);
 
-  // Funciones de navegación
-  const navegarAnterior = () => {
+  // ============================================================================
+  // OPTIMIZACIÓN 6: Resetear índice solo cuando cambien elementos filtrados
+  // ============================================================================
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [filteredConcesiones.length]);
+
+  // ============================================================================
+  // OPTIMIZACIÓN 7: Funciones de navegación optimizadas con useCallback
+  // ============================================================================
+  const navegarAnterior = useCallback(() => {
     if (filteredConcesiones.length === 0) return;
     
     const nuevoIndice = currentIndex > 0 ? currentIndex - 1 : filteredConcesiones.length - 1;
     setCurrentIndex(nuevoIndice);
     setSelectedConcesion(filteredConcesiones[nuevoIndice]);
-  };
+  }, [currentIndex, filteredConcesiones]);
 
-  const navegarSiguiente = () => {
+  const navegarSiguiente = useCallback(() => {
     if (filteredConcesiones.length === 0) return;
     
     const nuevoIndice = currentIndex < filteredConcesiones.length - 1 ? currentIndex + 1 : 0;
     setCurrentIndex(nuevoIndice);
     setSelectedConcesion(filteredConcesiones[nuevoIndice]);
-  };
+  }, [currentIndex, filteredConcesiones]);
 
-  // Funciones de manejo de eventos optimizadas con useCallback
+  // ============================================================================
+  // OPTIMIZACIÓN 8: Handlers memoizados con useCallback
+  // ============================================================================
   const manejarCambioRegion = useCallback((region) => {
     setSelectedRegion(region);
     setSelectedMunicipio('');
     setSelectedConcesion(null);
     setSearchTerm('');
-    setActiveSearchTerm(''); // Limpiar búsqueda activa
+    setActiveSearchTerm('');
   }, []);
 
   const manejarCambioMunicipio = useCallback((municipio) => {
@@ -159,14 +187,11 @@ function App() {
 
   const manejarBusqueda = useCallback((termino) => {
     setSearchTerm(termino);
-    // No hacer nada más aquí para evitar lag
   }, []);
 
   const manejarActivarBusqueda = useCallback(() => {
-    // Activar la búsqueda solo cuando se hace clic en el botón
     setActiveSearchTerm(searchTerm);
     
-    // Limpiar otros filtros solo cuando hay un término de búsqueda
     if (searchTerm.length > 0) {
       setSelectedRegion('');
       setSelectedMunicipio('');
@@ -175,7 +200,7 @@ function App() {
 
   const manejarLimpiarBusqueda = useCallback(() => {
     setSearchTerm('');
-    setActiveSearchTerm(''); // Importante: limpiar también el término activo
+    setActiveSearchTerm('');
     setSelectedConcesion(null);
   }, []);
 
@@ -194,36 +219,45 @@ function App() {
   }, [filteredConcesiones, isMobile]);
 
   const alternarPanel = useCallback(() => {
-    const nuevoEstado = !panelVisible;
-    setPanelVisible(nuevoEstado);
-    if (nuevoEstado && isMobile) {
-      setFiltersVisible(false);
-    }
-  }, [panelVisible, isMobile]);
+    setPanelVisible(prev => {
+      const nuevoEstado = !prev;
+      if (nuevoEstado && isMobile) {
+        setFiltersVisible(false);
+      }
+      return nuevoEstado;
+    });
+  }, [isMobile]);
 
   const alternarFiltros = useCallback(() => {
-    const nuevoEstado = !filtersVisible;
-    setFiltersVisible(nuevoEstado);
-    if (nuevoEstado && isMobile) {
-      setPanelVisible(false);
-    }
-  }, [filtersVisible, isMobile]);
+    setFiltersVisible(prev => {
+      const nuevoEstado = !prev;
+      if (nuevoEstado && isMobile) {
+        setPanelVisible(false);
+      }
+      return nuevoEstado;
+    });
+  }, [isMobile]);
 
+  // ============================================================================
+  // OPTIMIZACIÓN 9: Memoizar municipios filtrados
+  // ============================================================================
   const obtenerMunicipiosFiltrados = useMemo(() => {
     if (!selectedRegion) {
-      return municipios;
+      return MUNICIPIOS_UNICOS;
     }
-    const municipiosDeRegion = [...new Set(
-      concesiones
+    return [...new Set(
+      CONCESIONES_PROCESADAS
         .filter(c => c.region === selectedRegion)
         .map(c => c.municipio)
     )].sort();
-    return municipiosDeRegion;
-  }, [selectedRegion, municipios, concesiones]);
+  }, [selectedRegion]);
 
+  // ============================================================================
+  // OPTIMIZACIÓN 10: Memoizar años únicos (calcular una sola vez)
+  // ============================================================================
   const obtenerAniosUnicos = useMemo(() => {
     const anios = new Set();
-    concesiones.forEach(c => {
+    CONCESIONES_PROCESADAS.forEach(c => {
       if (c.fecha_inicio) {
         const partes = c.fecha_inicio.split('/');
         if (partes.length === 3) {
@@ -236,7 +270,7 @@ function App() {
       }
     });
     return Array.from(anios).sort().reverse();
-  }, [concesiones]);
+  }, []); // Solo calcular una vez
 
   return (
     <div className="app-container">
@@ -264,7 +298,7 @@ function App() {
         municipioSeleccionado={selectedMunicipio}
         filtroAnio={yearFilter}
         terminoBusqueda={searchTerm}
-        regionesDisponibles={regionesUnicas}
+        regionesDisponibles={REGIONES_UNICAS}
         municipiosDisponibles={obtenerMunicipiosFiltrados}
         aniosDisponibles={obtenerAniosUnicos}
         onCambiarEstado={setSelectedEstado}
