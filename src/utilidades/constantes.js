@@ -52,7 +52,7 @@ export const COLORES_ESTADO = {
     oscuro: '#CC8400' 
   },
   relleno: {
-    primario: '#ffbd44'
+    primario: '#FF401A'
   }
 };
 
