@@ -1,32 +1,34 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 /**
  * Elemento individual clickeable en la lista de concesiones/órdenes
  * @param {Object} elemento - Elemento a mostrar (concesión u orden)
  * @param {Function} onClick - Callback cuando se hace click en el elemento
  */
-const ElementoLista = ({ elemento, onClick }) => {
+const ElementoLista = memo(({ elemento, onClick }) => {
+  if (!elemento) return null;
+
   const esOrden = elemento.tipo === 'orden_exploracion';
   const nombreElemento = esOrden ? elemento.nombre : elemento.nombre_lote;
   const titular = esOrden ? elemento.a_favor : elemento.titular;
-  
-  const claseEstado = esOrden 
-    ? 'orden' 
+
+  const claseEstado = esOrden
+    ? 'orden'
     : elemento.estado === 'Vigente' ? 'vigente' : 'no-vigente';
 
   return (
-    <div onClick={onClick} className="concesion-item">
+    <div onClick={() => onClick(elemento)} className="concesion-item">
       <div className="concesion-name">
         <span className={`concesion-status-dot ${claseEstado}`} />
-        {nombreElemento}
+        {nombreElemento || 'Sin nombre'}
       </div>
       <div className="concesion-titular">
-        {titular}
+        {titular || 'Sin titular'}
       </div>
       <div className="concesion-details">
-        <span>{elemento.municipio}</span>
+        <span>{elemento.municipio || '—'}</span>
         <span className="detail-separator">•</span>
-        <span>{elemento.superficie} ha</span>
+        <span>{elemento.superficie || '—'} ha</span>
         {esOrden && (
           <>
             <span className="detail-separator">•</span>
@@ -36,6 +38,8 @@ const ElementoLista = ({ elemento, onClick }) => {
       </div>
     </div>
   );
-};
+});
+
+ElementoLista.displayName = 'ElementoLista';
 
 export default ElementoLista;

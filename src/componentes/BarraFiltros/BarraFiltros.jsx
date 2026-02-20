@@ -1,9 +1,6 @@
 import React, { memo } from 'react';
 import { descargarExcel } from './utilidades/exportadorExcel';
 
-// ============================================================================
-// OPTIMIZACIÓN: Memoizar componente para evitar re-renders innecesarios
-// ============================================================================
 const BarraFiltros = memo(({
   visible,
   panelVisible,
@@ -33,11 +30,6 @@ const BarraFiltros = memo(({
     );
   };
 
-  const manejarEnvioFormulario = (e) => {
-    e.preventDefault();
-    onActivarBusqueda();
-  };
-
   const manejarTeclaEnter = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -50,64 +42,56 @@ const BarraFiltros = memo(({
       <div className="filters-bar-header">
         <span className="filters-bar-title">Filtros de Búsqueda</span>
       </div>
-      
+
       <div className="filters-bar-content">
-        <select
-          value={estadoSeleccionado}
-          onChange={(e) => onCambiarEstado(e.target.value)}
-          className="filter-select"
-        >
-          <option value="">Todos los estados</option>
-          <option value="Guerrero">Guerrero</option>
-        </select>
+        {/* ── Selects fijos ── */}
+        <div className="filters-selects">
+          <select
+            value={estadoSeleccionado}
+            onChange={(e) => onCambiarEstado(e.target.value)}
+            className="filter-select"
+          >
+            <option value="">Todos los estados</option>
+            <option value="Guerrero">Guerrero</option>
+          </select>
 
-        <select
-          value={regionSeleccionada}
-          onChange={(e) => onCambiarRegion(e.target.value)}
-          className="filter-select"
-        >
-          <option value="">Todas las regiones</option>
-          {regionesDisponibles.map(region => (
-            <option key={region} value={region}>
-              {region}
-            </option>
-          ))}
-        </select>
+          <select
+            value={regionSeleccionada}
+            onChange={(e) => onCambiarRegion(e.target.value)}
+            className="filter-select"
+          >
+            <option value="">Todas las regiones</option>
+            {regionesDisponibles.map(region => (
+              <option key={region} value={region}>{region}</option>
+            ))}
+          </select>
 
-        <select
-          value={municipioSeleccionado}
-          onChange={(e) => onCambiarMunicipio(e.target.value)}
-          className="filter-select filter-select-municipio"
-        >
-          <option value="">Todos los municipios</option>
-          {municipiosDisponibles.map(municipio => (
-            <option key={municipio} value={municipio}>
-              {municipio}
-            </option>
-          ))}
-        </select>
+          <select
+            value={municipioSeleccionado}
+            onChange={(e) => onCambiarMunicipio(e.target.value)}
+            className="filter-select filter-select-municipio"
+          >
+            <option value="">Todos los municipios</option>
+            {municipiosDisponibles.map(municipio => (
+              <option key={municipio} value={municipio}>{municipio}</option>
+            ))}
+          </select>
 
-        <select
-          value={filtroAnio}
-          onChange={(e) => onCambiarAnio(e.target.value)}
-          className="filter-select filter-select-year"
-        >
-          <option value="">Todos los años</option>
-          {aniosDisponibles.map(anio => (
-            <option key={anio} value={anio}>
-              {anio}
-            </option>
-          ))}
-        </select>
+          <select
+            value={filtroAnio}
+            onChange={(e) => onCambiarAnio(e.target.value)}
+            className="filter-select filter-select-year"
+          >
+            <option value="">Todos los años</option>
+            {aniosDisponibles.map(anio => (
+              <option key={anio} value={anio}>{anio}</option>
+            ))}
+          </select>
+        </div>
 
-        <form onSubmit={manejarEnvioFormulario} style={{ display: 'contents' }}>
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {/* ============================================================================
-                CRÍTICO: Input NO controlado por el estado de filtrado
-                - Se actualiza instantáneamente con cada tecla
-                - NO causa re-render de filteredConcesiones
-                - Solo searchTerm se actualiza, no activeSearchTerm
-                ============================================================================ */}
+        {/* ── Búsqueda + botones (se expanden para llenar el espacio restante) ── */}
+        <div className="filters-search">
+          <div className="search-wrapper">
             <input
               type="text"
               placeholder="Buscar por nombre de lote, titular, orden..."
@@ -115,24 +99,12 @@ const BarraFiltros = memo(({
               onChange={(e) => onCambiarBusqueda(e.target.value)}
               onKeyPress={manejarTeclaEnter}
               className="search-input"
-              style={{ paddingRight: terminoBusqueda ? '40px' : '12px' }}
             />
             {terminoBusqueda && (
               <button
                 type="button"
                 onClick={onLimpiarBusqueda}
-                style={{
-                  position: 'absolute',
-                  right: '8px',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  color: '#6B7280',
-                  fontSize: '18px'
-                }}
+                className="search-clear-btn"
                 title="Limpiar búsqueda"
               >
                 ✕
@@ -140,9 +112,9 @@ const BarraFiltros = memo(({
             )}
           </div>
 
-          {/* Botón de búsqueda - AQUÍ es donde se activa el filtrado real */}
           <button
-            type="submit"
+            type="button"
+            onClick={onActivarBusqueda}
             className="btn-download"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -151,25 +123,25 @@ const BarraFiltros = memo(({
             </svg>
             Buscar
           </button>
-        </form>
 
-        <button
-          onClick={manejarDescargaExcel}
-          className="btn-download"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
-          </svg>
-          Excel
-        </button>
+          <button
+            type="button"
+            onClick={manejarDescargaExcel}
+            className="btn-download"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Excel
+          </button>
+        </div>
       </div>
     </div>
   );
 });
 
-// Agregar displayName para debugging
 BarraFiltros.displayName = 'BarraFiltros';
 
 export default BarraFiltros;

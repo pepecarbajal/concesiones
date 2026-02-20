@@ -65,17 +65,9 @@ function App() {
   const [selectedMunicipio, setSelectedMunicipio] = useState('');
   const [yearFilter, setYearFilter] = useState('');
   
-  // ============================================================================
-  // NUEVO: Estado para tipo de elemento (concesiones, órdenes, o todos)
-  // Por defecto muestra concesiones
-  // ============================================================================
+  // Estado para tipo de elemento
   const [tipoElemento, setTipoElemento] = useState('concesiones');
   
-  // ============================================================================
-  // OPTIMIZACIÓN CRÍTICA: Separar el valor del input del término de búsqueda activo
-  // searchTerm: Lo que el usuario escribe (se actualiza instantáneamente)
-  // activeSearchTerm: El término que realmente se usa para filtrar (solo al hacer click)
-  // ============================================================================
   const [searchTerm, setSearchTerm] = useState('');
   const [activeSearchTerm, setActiveSearchTerm] = useState('');
   
@@ -86,9 +78,6 @@ function App() {
   const [filtersVisible, setFiltersVisible] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
-  // ============================================================================
-  // OPTIMIZACIÓN: Debounce en resize
-  // ============================================================================
   useEffect(() => {
     let timeoutId;
     
@@ -115,48 +104,30 @@ function App() {
     };
   }, []);
 
-  // ============================================================================
-  // OPTIMIZACIÓN: Memoizar elementos filtrados
-  // SOLO filtra cuando activeSearchTerm cambia (al hacer click en Buscar)
-  // NUEVO: También filtra por tipo de elemento seleccionado
-  // ============================================================================
   const filteredConcesiones = useMemo(() => {
     let datosConcesionesFiltrados = CONCESIONES_PROCESADAS;
     let datosOrdenesFiltrados = ORDENES_PROCESADAS;
     
-    // ============================================================================
-    // NUEVO: Filtrar por tipo de elemento PRIMERO
-    // ============================================================================
     if (tipoElemento === 'concesiones') {
-      // Solo concesiones, no órdenes
       datosOrdenesFiltrados = [];
     } else if (tipoElemento === 'ordenes') {
-      // Solo órdenes, no concesiones
       datosConcesionesFiltrados = [];
     }
-    // Si tipoElemento === 'todos', se mantienen ambos
     
-    // Filtrar por región
     if (selectedRegion) {
       datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => c.region === selectedRegion);
     }
     
-    // Filtrar por municipio
     if (selectedMunicipio) {
       datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => c.municipio === selectedMunicipio);
     }
     
-    // Filtrar por año
     if (yearFilter) {
       datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => 
         filtrarPorAnio(c, yearFilter)
       );
     }
     
-    // ============================================================================
-    // CLAVE: Solo filtra por búsqueda cuando activeSearchTerm tiene valor
-    // Esto significa que el input puede actualizarse libremente sin causar filtrado
-    // ============================================================================
     if (activeSearchTerm.length > 2) {
       datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c =>
         buscarEnElemento(c, activeSearchTerm)
@@ -170,17 +141,12 @@ function App() {
     return [...datosConcesionesFiltrados, ...datosOrdenesFiltrados];
   }, [selectedRegion, selectedMunicipio, activeSearchTerm, yearFilter, tipoElemento]);
 
-  // Resetear índice cuando cambien elementos filtrados
   useEffect(() => {
     setCurrentIndex(0);
   }, [filteredConcesiones.length]);
 
-  // ============================================================================
-  // Funciones de navegación
-  // ============================================================================
   const navegarAnterior = useCallback(() => {
     if (filteredConcesiones.length === 0) return;
-    
     const nuevoIndice = currentIndex > 0 ? currentIndex - 1 : filteredConcesiones.length - 1;
     setCurrentIndex(nuevoIndice);
     setSelectedConcesion(filteredConcesiones[nuevoIndice]);
@@ -188,15 +154,11 @@ function App() {
 
   const navegarSiguiente = useCallback(() => {
     if (filteredConcesiones.length === 0) return;
-    
     const nuevoIndice = currentIndex < filteredConcesiones.length - 1 ? currentIndex + 1 : 0;
     setCurrentIndex(nuevoIndice);
     setSelectedConcesion(filteredConcesiones[nuevoIndice]);
   }, [currentIndex, filteredConcesiones]);
 
-  // ============================================================================
-  // Handlers de filtros
-  // ============================================================================
   const manejarCambioRegion = useCallback((region) => {
     setSelectedRegion(region);
     setSelectedMunicipio('');
@@ -210,22 +172,12 @@ function App() {
     setSelectedConcesion(null);
   }, []);
 
-  // ============================================================================
-  // CLAVE: Handler de búsqueda que NO causa re-render del filtrado
-  // Solo actualiza el estado local del input
-  // ============================================================================
   const manejarBusqueda = useCallback((termino) => {
     setSearchTerm(termino);
-    // NO actualiza activeSearchTerm aquí - eso solo pasa al hacer click en Buscar
   }, []);
 
-  // ============================================================================
-  // CLAVE: Solo al hacer click en "Buscar" se activa el filtrado real
-  // ============================================================================
   const manejarActivarBusqueda = useCallback(() => {
     setActiveSearchTerm(searchTerm);
-    
-    // Limpiar otros filtros cuando hay búsqueda
     if (searchTerm.length > 0) {
       setSelectedRegion('');
       setSelectedMunicipio('');
@@ -238,9 +190,6 @@ function App() {
     setSelectedConcesion(null);
   }, []);
 
-  // ============================================================================
-  // NUEVO: Handler para cambiar tipo de elemento
-  // ============================================================================
   const manejarCambiarTipo = useCallback((tipo) => {
     setTipoElemento(tipo);
     setSelectedConcesion(null);
@@ -281,9 +230,6 @@ function App() {
     });
   }, [isMobile]);
 
-  // ============================================================================
-  // Memoizar municipios y años
-  // ============================================================================
   const obtenerMunicipiosFiltrados = useMemo(() => {
     if (!selectedRegion) {
       return MUNICIPIOS_UNICOS;
@@ -314,21 +260,34 @@ function App() {
 
   return (
     <div className="app-container">
+      {/* ============================================================
+          HEADER SUPERIOR: Título + Selector de Tipo de Elemento
+          ============================================================ */}
+      <header className="app-header">
+        <div className="app-header-brand">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2" />
+            <polyline points="2 17 12 22 22 17" />
+            <polyline points="2 12 12 17 22 12" />
+          </svg>
+          <h1 className="app-header-title">Cartografía Minera del Estado de Guerrero</h1>
+        </div>
+
+        <div className="app-header-selector">
+          <SelectorTipoElemento
+            tipoSeleccionado={tipoElemento}
+            onCambiarTipo={manejarCambiarTipo}
+            totalConcesiones={CONCESIONES_PROCESADAS.length}
+            totalOrdenes={ORDENES_PROCESADAS.length}
+          />
+        </div>
+      </header>
+
       <BotonesMovil
         panelVisible={panelVisible}
         filtersVisible={filtersVisible}
         onTogglePanel={alternarPanel}
         onToggleFiltros={alternarFiltros}
-      />
-
-      {/* ============================================================================
-          NUEVO: Selector de tipo de elemento (Concesiones / Órdenes / Todos)
-          ============================================================================ */}
-      <SelectorTipoElemento
-        tipoSeleccionado={tipoElemento}
-        onCambiarTipo={manejarCambiarTipo}
-        totalConcesiones={CONCESIONES_PROCESADAS.length}
-        totalOrdenes={ORDENES_PROCESADAS.length}
       />
 
       <Mapa
