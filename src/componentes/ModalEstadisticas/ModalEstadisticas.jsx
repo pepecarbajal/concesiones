@@ -176,7 +176,7 @@ const ModalEstadisticas = ({
         {/* ── Barra de progreso estado ── */}
         <div className="stats-state-bar-wrap">
           <div className="stats-state-bar-labels">
-            <span>Superficie concesionada vs Guerrero (6,364,100 ha)</span>
+            <span>Superficie del estado de Guerrero (6,364,100 ha)</span>
             <span className="stats-state-bar-pct">{porcentajeEstado}%</span>
           </div>
           <div className="stats-state-bar-bg">
@@ -218,8 +218,8 @@ const ModalEstadisticas = ({
         <div className="stats-chart-section">
           <h3 className="stats-chart-title">
             {vista === 'empresa'
-              ? 'Top 8 — Empresas con mayor superficie concesionada'
-              : 'Top 10 — Concesiones más grandes en el filtro actual'}
+              ? 'Empresas con mayor superficie concesionada'
+              : 'Concesiones más grandes en el filtro actual'}
             {datosActivos.arr.length === 0 && (
               <span className="stats-empty"> — Sin datos</span>
             )}
