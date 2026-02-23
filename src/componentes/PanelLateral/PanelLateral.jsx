@@ -8,6 +8,10 @@ const PanelLateral = ({
   elementosFiltrados,
   indiceActual,
   esMovil,
+  tipoElemento,
+  onCambiarTipo,
+  totalConcesiones,
+  totalOrdenes,
   onSeleccionarElemento,
   onDeseleccionar,
   onNavegarAnterior,
@@ -29,6 +33,10 @@ const PanelLateral = ({
           elementos={elementosFiltrados}
           onSeleccionarElemento={onSeleccionarElemento}
           esMovil={esMovil}
+          tipoElemento={tipoElemento}
+          onCambiarTipo={onCambiarTipo}
+          totalConcesiones={totalConcesiones}
+          totalOrdenes={totalOrdenes}
         />
       )}
     </div>

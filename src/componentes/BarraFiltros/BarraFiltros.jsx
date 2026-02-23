@@ -39,22 +39,11 @@ const BarraFiltros = memo(({
 
   return (
     <div className={`filters-bar ${visible ? 'filters-visible' : 'filters-hidden'} ${!panelVisible ? 'filters-no-panel' : ''}`}>
-      <div className="filters-bar-header">
-        <span className="filters-bar-title">Filtros de Búsqueda</span>
-      </div>
+      
 
       <div className="filters-bar-content">
         {/* ── Selects fijos ── */}
         <div className="filters-selects">
-          <select
-            value={estadoSeleccionado}
-            onChange={(e) => onCambiarEstado(e.target.value)}
-            className="filter-select"
-          >
-            <option value="">Todos los estados</option>
-            <option value="Guerrero">Guerrero</option>
-          </select>
-
           <select
             value={regionSeleccionada}
             onChange={(e) => onCambiarRegion(e.target.value)}
