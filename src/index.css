@@ -2064,3 +2064,227 @@ html, body {
   .stats-bar-name      { font-size: 11px; }
   .stats-bar-ha        { font-size: 11px; }
 }
+
+/* ========================================
+   AJUSTES PARA 1366 x 768
+   Añadir al final de index.css
+   ======================================== */
+
+/* ─── Breakpoint específico 1366 × 768 ─── */
+@media (min-width: 1025px) and (max-width: 1400px) and (max-height: 800px) {
+
+  /* ── Header ── */
+  .app-header {
+    height: 50px;
+    padding: 0 12px;
+    gap: 10px;
+  }
+
+  .app-header-title {
+    font-size: 13px;
+  }
+
+  .tipo-option-inline {
+    padding: 5px 10px;
+    gap: 5px;
+  }
+
+  .tipo-option-inline-label {
+    font-size: 12px;
+  }
+
+  .tipo-option-inline-count {
+    font-size: 10px;
+    padding: 1px 6px;
+  }
+
+  .btn-estadisticas {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  /* ── Panel lateral ── */
+  .side-panel {
+    width: 340px;
+    left: 14px;
+    top: 66px;
+    bottom: 14px;
+  }
+
+  .panel-header-main {
+    padding: 18px 20px 16px;
+  }
+
+  .panel-title {
+    font-size: 18px;
+  }
+
+  .panel-subtitle {
+    font-size: 12px;
+  }
+
+  .scrollable-content {
+    padding: 18px;
+    padding-bottom: 50px;
+  }
+
+  .scrollable-content-list {
+    padding: 14px;
+    padding-bottom: 50px;
+  }
+
+  /* ── Filtros ── */
+  .filters-bar {
+    left: 368px;         /* panel (340) + left (14) + gap (14) */
+    top: 66px;
+    right: 50px;
+  }
+
+  .filters-bar-content {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .filters-selects {
+    gap: 8px;
+  }
+
+  .filter-select {
+    min-width: 130px;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .filter-select-municipio {
+    min-width: 150px;
+  }
+
+  .filter-select-year {
+    min-width: 120px;
+  }
+
+  .search-input {
+    font-size: 12px;
+    padding: 8px 32px 8px 12px;
+  }
+
+  .btn-download {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+
+  /* ── Controles del mapa ── */
+  .mapboxgl-ctrl-top-right {
+    top: 60px;
+  }
+
+  /* ── Panel header tipo selector ── */
+  .panel-tipo-btn {
+    font-size: 11px;
+    padding: 7px 8px;
+  }
+
+  /* ── Cards internas ── */
+  .stat-card {
+    padding: 12px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
+
+  .stat-value.small {
+    font-size: 15px;
+  }
+
+  .dates-grid {
+    margin-top: 18px;
+    gap: 8px;
+  }
+
+  .date-card {
+    padding: 10px;
+  }
+
+  .concesion-item {
+    padding: 12px;
+  }
+
+  .info-rows {
+    gap: 13px;
+  }
+
+  .btn-rpm,
+  .btn-dof {
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+
+  /* ── Modal estadísticas ── */
+  .stats-modal {
+    max-width: 580px;
+    max-height: 85vh;
+  }
+
+  .stats-modal-header {
+    padding: 20px 24px 16px;
+  }
+
+  .stats-modal-title {
+    font-size: 16px;
+  }
+
+  .stats-chart-section {
+    padding: 14px 24px 10px;
+  }
+
+  .stats-state-bar-wrap {
+    padding: 14px 24px 0;
+  }
+
+  .stats-tabs {
+    padding: 12px 24px 0;
+  }
+
+  .stats-footer-note {
+    padding: 12px 24px 18px;
+  }
+
+  .stats-kpi-value {
+    font-size: 20px;
+  }
+}
+
+/* ─── Sin restricción de altura: pantallas anchas medianas (ej. 1366 × 900+) ─── */
+@media (min-width: 1025px) and (max-width: 1400px) and (min-height: 801px) {
+
+  .side-panel {
+    width: 360px;
+    left: 14px;
+    top: 70px;
+    bottom: 16px;
+  }
+
+  .filters-bar {
+    left: 388px;
+    top: 70px;
+    right: 52px;
+  }
+
+  .filter-select {
+    min-width: 140px;
+    font-size: 12.5px;
+  }
+
+  .filter-select-municipio {
+    min-width: 160px;
+  }
+
+  .filter-select-year {
+    min-width: 128px;
+  }
+
+  .search-input {
+    font-size: 12.5px;
+  }
+}
