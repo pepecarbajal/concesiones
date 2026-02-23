@@ -165,7 +165,7 @@ function App() {
     <div className="app-container">
       <header className="app-header">
         <div className="app-header-brand"> 
-          <h1 className="app-header-title">Cartografía Minera del Estado de Guerrero</h1>
+          <h1 className="app-header-title">Información Minera del Estado de Guerrero</h1>
         </div>
 
         <button
