@@ -3,6 +3,7 @@ import './index.css';
 
 import concesionesData from './concesiones.json';
 import ordenesExploracionData from './ordenes_exploracion.json';
+import areasNaturalesData from './areasNaturales.json';
 
 import Mapa from './componentes/Mapa/Mapa';
 import BarraFiltros from './componentes/BarraFiltros/BarraFiltros';
@@ -13,9 +14,11 @@ import ModalEstadisticas from './componentes/ModalEstadisticas/ModalEstadisticas
 import { procesarConcesiones, procesarOrdenesExploracion } from './utilidades/procesadorDatos';
 
 const CONCESIONES_PROCESADAS = procesarConcesiones(concesionesData);
-const ORDENES_PROCESADAS = procesarOrdenesExploracion(ordenesExploracionData);
+const ORDENES_PROCESADAS     = procesarOrdenesExploracion(ordenesExploracionData);
+const AREAS_NATURALES        = areasNaturalesData;
+
 const MUNICIPIOS_UNICOS = [...new Set(CONCESIONES_PROCESADAS.map(c => c.municipio))].sort();
-const REGIONES_UNICAS = [...new Set(CONCESIONES_PROCESADAS.map(c => c.region).filter(Boolean))].sort();
+const REGIONES_UNICAS   = [...new Set(CONCESIONES_PROCESADAS.map(c => c.region).filter(Boolean))].sort();
 
 const filtrarPorAnio = (elemento, yearFilter) => {
   if (!yearFilter || !elemento.fecha_inicio) return true;
@@ -41,19 +44,22 @@ const buscarEnElemento = (elemento, termino) => {
 };
 
 function App() {
-  const [selectedEstado, setSelectedEstado] = useState('');
-  const [selectedRegion, setSelectedRegion] = useState('');
+  const [selectedEstado, setSelectedEstado]       = useState('');
+  const [selectedRegion, setSelectedRegion]       = useState('');
   const [selectedMunicipio, setSelectedMunicipio] = useState('');
-  const [yearFilter, setYearFilter] = useState('');
-  const [tipoElemento, setTipoElemento] = useState('concesiones');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeSearchTerm, setActiveSearchTerm] = useState('');
+  const [yearFilter, setYearFilter]               = useState('');
+  const [tipoElemento, setTipoElemento]           = useState('concesiones');
+  const [searchTerm, setSearchTerm]               = useState('');
+  const [activeSearchTerm, setActiveSearchTerm]   = useState('');
   const [selectedConcesion, setSelectedConcesion] = useState(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [panelVisible, setPanelVisible] = useState(true);
-  const [filtersVisible, setFiltersVisible] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
+  const [currentIndex, setCurrentIndex]           = useState(0);
+  const [panelVisible, setPanelVisible]           = useState(true);
+  const [filtersVisible, setFiltersVisible]       = useState(true);
+  const [isMobile, setIsMobile]                   = useState(false);
   const [modalEstadisticasVisible, setModalEstadisticasVisible] = useState(false);
+
+  // ── Estado puente: ANP seleccionada desde el panel → vuela en el mapa ──
+  const [anpSeleccionada, setAnpSeleccionada] = useState(null);
 
   useEffect(() => {
     let timeoutId;
@@ -63,7 +69,7 @@ function App() {
         const esMovil = window.innerWidth <= 768;
         setIsMobile(esMovil);
         if (esMovil) { setPanelVisible(false); setFiltersVisible(false); }
-        else { setPanelVisible(true); setFiltersVisible(true); }
+        else          { setPanelVisible(true);  setFiltersVisible(true);  }
       }, 150);
     };
     verificarDispositivoMovil();
@@ -78,18 +84,21 @@ function App() {
   }, []);
 
   const filteredConcesiones = useMemo(() => {
-    let datosConcesionesFiltrados = CONCESIONES_PROCESADAS;
-    let datosOrdenesFiltrados = ORDENES_PROCESADAS;
+    // En modo ANP no mostramos marcadores de concesiones/órdenes
+    if (tipoElemento === 'areas_naturales') return [];
 
-    if (tipoElemento === 'concesiones') datosOrdenesFiltrados = [];
+    let datosConcesionesFiltrados = CONCESIONES_PROCESADAS;
+    let datosOrdenesFiltrados     = ORDENES_PROCESADAS;
+
+    if (tipoElemento === 'concesiones') datosOrdenesFiltrados     = [];
     else if (tipoElemento === 'ordenes') datosConcesionesFiltrados = [];
 
-    if (selectedRegion) datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => c.region === selectedRegion);
+    if (selectedRegion)    datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => c.region === selectedRegion);
     if (selectedMunicipio) datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => c.municipio === selectedMunicipio);
-    if (yearFilter) datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => filtrarPorAnio(c, yearFilter));
+    if (yearFilter)        datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => filtrarPorAnio(c, yearFilter));
     if (activeSearchTerm.length > 2) {
       datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => buscarEnElemento(c, activeSearchTerm));
-      datosOrdenesFiltrados = datosOrdenesFiltrados.filter(o => buscarEnElemento(o, activeSearchTerm));
+      datosOrdenesFiltrados     = datosOrdenesFiltrados.filter(o => buscarEnElemento(o, activeSearchTerm));
     }
 
     return [...datosConcesionesFiltrados, ...datosOrdenesFiltrados];
@@ -114,24 +123,45 @@ function App() {
     setSelectedConcesion(null); setSearchTerm(''); setActiveSearchTerm('');
   }, []);
 
-  const manejarCambioMunicipio = useCallback((municipio) => { setSelectedMunicipio(municipio); setSelectedConcesion(null); }, []);
-  const manejarBusqueda = useCallback((t) => setSearchTerm(t), []);
+  const manejarCambioMunicipio = useCallback((municipio) => {
+    setSelectedMunicipio(municipio); setSelectedConcesion(null);
+  }, []);
+
+  const manejarBusqueda        = useCallback((t) => setSearchTerm(t), []);
 
   const manejarActivarBusqueda = useCallback(() => {
     setActiveSearchTerm(searchTerm);
     if (searchTerm.length > 0) { setSelectedRegion(''); setSelectedMunicipio(''); }
   }, [searchTerm]);
 
-  const manejarLimpiarBusqueda = useCallback(() => { setSearchTerm(''); setActiveSearchTerm(''); setSelectedConcesion(null); }, []);
-  const manejarCambiarTipo = useCallback((tipo) => { setTipoElemento(tipo); setSelectedConcesion(null); setCurrentIndex(0); }, []);
+  const manejarLimpiarBusqueda = useCallback(() => {
+    setSearchTerm(''); setActiveSearchTerm(''); setSelectedConcesion(null);
+  }, []);
+
+  const manejarCambiarTipo = useCallback((tipo) => {
+    setTipoElemento(tipo);
+    setSelectedConcesion(null);
+    setCurrentIndex(0);
+    // Limpiar ANP seleccionada al cambiar de tipo
+    if (tipo !== 'areas_naturales') setAnpSeleccionada(null);
+  }, []);
 
   const manejarSeleccionElemento = useCallback((elemento) => {
     const indice = filteredConcesiones.findIndex(c =>
-      elemento.tipo === 'orden_exploracion' ? c.num_orden === elemento.num_orden : c.titulo === elemento.titulo
+      elemento.tipo === 'orden_exploracion'
+        ? c.num_orden === elemento.num_orden
+        : c.titulo === elemento.titulo
     );
     setCurrentIndex(indice); setSelectedConcesion(elemento);
     if (isMobile) setPanelVisible(false);
   }, [filteredConcesiones, isMobile]);
+
+  // ── Cuando el usuario selecciona un ANP en el panel, actualizamos el estado
+  //    que el Mapa observa para hacer flyTo ──
+  const manejarSeleccionANP = useCallback((anp) => {
+    setAnpSeleccionada(anp);
+    if (isMobile) setPanelVisible(false);
+  }, [isMobile]);
 
   const alternarPanel = useCallback(() => {
     setPanelVisible(prev => { const n = !prev; if (n && isMobile) setFiltersVisible(false); return n; });
@@ -164,23 +194,9 @@ function App() {
   return (
     <div className="app-container">
       <header className="app-header">
-        <div className="app-header-brand"> 
+        <div className="app-header-brand">
           <h1 className="app-header-title">Información Minera del Estado de Guerrero</h1>
         </div>
-
-        <button
-          className="btn-estadisticas"
-          onClick={() => setModalEstadisticasVisible(true)}
-          title="Ver estadísticas de los elementos visibles"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="20" x2="18" y2="10" />
-            <line x1="12" y1="20" x2="12" y2="4" />
-            <line x1="6" y1="20" x2="6" y2="14" />
-            <line x1="2" y1="20" x2="22" y2="20" />
-          </svg>
-          <span>Estadísticas</span>
-        </button>
       </header>
 
       <BotonesMovil
@@ -197,6 +213,7 @@ function App() {
         regionSeleccionada={selectedRegion}
         municipioSeleccionado={selectedMunicipio}
         terminoBusqueda={activeSearchTerm}
+        anpSeleccionada={anpSeleccionada}
       />
 
       <BarraFiltros
@@ -230,10 +247,14 @@ function App() {
         onCambiarTipo={manejarCambiarTipo}
         totalConcesiones={CONCESIONES_PROCESADAS.length}
         totalOrdenes={ORDENES_PROCESADAS.length}
+        anps={AREAS_NATURALES}
+        totalANPs={AREAS_NATURALES.length}
         onSeleccionarElemento={manejarSeleccionElemento}
+        onSeleccionarANP={manejarSeleccionANP}
         onDeseleccionar={() => setSelectedConcesion(null)}
         onNavegarAnterior={navegarAnterior}
         onNavegarSiguiente={navegarSiguiente}
+        onMostrarEstadisticas={() => setModalEstadisticasVisible(true)}
       />
 
       {modalEstadisticasVisible && (

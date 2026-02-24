@@ -2288,3 +2288,130 @@ html, body {
     font-size: 12.5px;
   }
 }
+
+/* ========================================
+   SELECTOR SECUNDARIO (Áreas Naturales + Estadísticas)
+   ======================================== */
+
+.panel-tipo-selector-secondary {
+  margin-top: 6px;
+}
+
+/* Botones secundarios: mismo estilo base pero con tono verde/neutro */
+.panel-tipo-btn-secondary {
+  font-size: 11.5px;
+}
+
+/* Ícono del botón Áreas Naturales — tono verde */
+.panel-tipo-btn-secondary:first-child svg {
+  stroke: rgba(110, 231, 183, 0.85);
+}
+.panel-tipo-btn-secondary:first-child.active svg {
+  stroke: #6EE7B7;
+}
+
+/* Ícono del botón Estadísticas — tono azul claro */
+.panel-tipo-btn-estadisticas svg {
+  stroke: rgba(147, 197, 253, 0.85) !important;
+}
+.panel-tipo-btn-estadisticas:hover svg,
+.panel-tipo-btn-estadisticas:focus svg {
+  stroke: #93C5FD !important;
+}
+
+/* Responsive móvil */
+@media (max-width: 768px) {
+  .panel-tipo-btn-secondary {
+    font-size: 10.5px;
+    padding: 6px 7px;
+  }
+}
+
+/* ========================================
+   PANEL HEADER — modo Áreas Naturales
+   Agregar al final de index.css
+   ======================================== */
+
+.panel-header-anp {
+  background: linear-gradient(135deg, #166534 0%, #15803d 100%) !important;
+}
+
+/* Botón ANP activo — verde */
+.panel-tipo-btn-secondary.active {
+  background: rgba(255, 255, 255, 0.22);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* ========================================
+   DETALLE ANP — tarjetas de superficie
+   ======================================== */
+.anp-superficie-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.anp-sup-card {
+  border: 1.5px solid;
+  border-radius: 10px;
+  padding: 12px 10px;
+  text-align: center;
+}
+
+.anp-sup-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 4px;
+}
+
+.anp-sup-valor {
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+/* ========================================
+   DETALLE ANP — título fechas y fuente
+   ======================================== */
+.anp-fechas-titulo {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.anp-fuente {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 20px;
+  padding: 10px 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+  font-size: 10px;
+  color: #9ca3af;
+  line-height: 1.5;
+}
+
+.anp-fuente svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  opacity: 0.6;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 768px) {
+  .anp-superficie-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .anp-sup-valor {
+    font-size: 12px;
+  }
+}
