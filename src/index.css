@@ -88,7 +88,7 @@ html, body {
 }
 
 .app-header-title {
-  font-size: 15px;
+  font-size: 20px;
   font-weight: 800;
   color: white;
   letter-spacing: -0.2px;
@@ -531,8 +531,8 @@ html, body {
 
 .panel-title {
   margin: 0 0 6px 0;
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 5  00;
   letter-spacing: -0.3px;
 }
 

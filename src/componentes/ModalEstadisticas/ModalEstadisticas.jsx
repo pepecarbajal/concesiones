@@ -8,13 +8,16 @@ const COLORES = [
 ];
 
 // ── Barra individual reutilizable ────────────────────────────────────────────
-const BaraItem = ({ nombre, subtitulo, superficie, maxSup, color, index, animado }) => {
+const BaraItem = ({ nombre, subtitulo, superficie, maxSup, color, index, animado, numero }) => {
   const pct       = (superficie / maxSup) * 100;
   const pctEstado = ((superficie / SUPERFICIE_GUERRERO_HA) * 100).toFixed(3);
 
   return (
     <div className="stats-bar-row">
       <div className="stats-bar-label" title={nombre}>
+        <span className="stats-bar-numero" style={{ color, minWidth: '1.4rem', fontWeight: 700, fontSize: '0.78rem', opacity: 0.85 }}>
+          {numero}.
+        </span>
         <span className="stats-bar-dot" style={{ background: color }} />
         <span className="stats-bar-name">{nombre}</span>
       </div>
@@ -159,7 +162,7 @@ const ModalEstadisticas = ({
         <div className="stats-kpis">
           <div className="stats-kpi">
             <span className="stats-kpi-value">{elementosFiltrados.length}</span>
-            <span className="stats-kpi-label">Elementos totales</span>
+            <span className="stats-kpi-label">Concesiones totales</span>
           </div>
           <div className="stats-kpi stats-kpi-accent">
             <span className="stats-kpi-value">
@@ -169,21 +172,7 @@ const ModalEstadisticas = ({
           </div>
           <div className="stats-kpi">
             <span className="stats-kpi-value stats-kpi-pct">{porcentajeEstado}%</span>
-            <span className="stats-kpi-label">Del territorio de Guerrero</span>
-          </div>
-        </div>
-
-        {/* ── Barra de progreso estado ── */}
-        <div className="stats-state-bar-wrap">
-          <div className="stats-state-bar-labels">
-            <span>Superficie del estado de Guerrero (6,364,100 ha)</span>
-            <span className="stats-state-bar-pct">{porcentajeEstado}%</span>
-          </div>
-          <div className="stats-state-bar-bg">
-            <div
-              className="stats-state-bar-fill"
-              style={{ width: animado ? `${Math.min(parseFloat(porcentajeEstado), 100)}%` : '0%' }}
-            />
+            <span className="stats-kpi-label">de la superficie del Estado de Guerrero</span>
           </div>
         </div>
 
@@ -236,6 +225,7 @@ const ModalEstadisticas = ({
                 color={COLORES[i % COLORES.length]}
                 index={i}
                 animado={animado}
+                numero={i + 1}
               />
             ))}
           </div>
