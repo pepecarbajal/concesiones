@@ -21,6 +21,15 @@ const ANP_SOURCE_ID    = 'anp-source';
 const ANP_FILL_ID      = 'anp-fill';
 const ANP_LINE_ID      = 'anp-line';
 
+const CAT_COLORES = {
+  'RB': { primario: '#16a34a', oscuro: '#14532d' },
+  'PN': { primario: '#2563eb', oscuro: '#1e3a8a' },
+  'MN': { primario: '#9333ea', oscuro: '#581c87' },
+  'AP': { primario: '#d97706', oscuro: '#92400e' },
+  'SB': { primario: '#0d9488', oscuro: '#134e4a' },
+  'FL': { primario: '#db2777', oscuro: '#831843' },
+};
+
 const formatearFecha = (fechaISO) => {
   if (!fechaISO) return 'N/D';
   try {
@@ -36,19 +45,16 @@ const formatearSuperficie = (sup) => {
 };
 
 const crearPopupANP = (props) => {
-  const nombre    = props.NOMBRE     || props.etiqueta || 'Área Natural Protegida';
-  const catManejo = props.CAT_MANEJO || '';
+  const nombre     = props.NOMBRE     || props.etiqueta || 'Área Natural Protegida';
+  const catManejo  = props.CAT_MANEJO || '';
   const municipios = props.MUNICIPIOS || 'N/D';
-  const region    = props.REGION     || 'N/D';
+  const region     = props.REGION     || 'N/D';
   const superficie = formatearSuperficie(props.SUPERFICIE || props.S_TERRES);
-  const ultDof    = formatearFecha(props.ULT_DOF);
-  const primDec   = formatearFecha(props.PCM1 || props.PRIM_DEC);
-  const idAnp     = props.ID_ANP     || 'N/D';
+  const ultDof     = formatearFecha(props.ULT_DOF);
+  const primDec    = formatearFecha(props.PCM1 || props.PRIM_DEC);
+  const idAnp      = props.ID_ANP     || 'N/D';
 
-  const colorCategoria = {
-    'RB': '#22c55e', 'PN': '#3b82f6', 'MN': '#a855f7',
-    'AP': '#f59e0b', 'SB': '#14b8a6', 'FL': '#ec4899',
-  }[catManejo] || '#6b7280';
+  const colorCategoria = CAT_COLORES[catManejo]?.primario || '#6b7280';
 
   const nombreCategoria = {
     'RB': 'Reserva de Biosfera',   'PN': 'Parque Nacional',
@@ -99,6 +105,45 @@ const crearPopupANP = (props) => {
   `;
 };
 
+// ── Crea el marcador DOM para un ANP con color según su categoría ──────────
+const crearMarcadorANPDOM = (catManejo) => {
+  const colores = CAT_COLORES[catManejo] || { primario: '#15803d', oscuro: '#14532d' };
+  const { primario, oscuro } = colores;
+
+  const el = document.createElement('div');
+  el.className = 'custom-marker-anp';
+  el.innerHTML = `
+    <svg width="26" height="28" viewBox="0 0 24 28" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="sh-anp" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="1"/>
+          <feOffset dx="0" dy="1" result="offsetblur"/>
+          <feComponentTransfer><feFuncA type="linear" slope="0.35"/></feComponentTransfer>
+          <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <circle cx="12" cy="10" r="9" fill="${oscuro}" filter="url(#sh-anp)"/>
+      <circle cx="12" cy="10" r="7.5" fill="${primario}"/>
+      <path d="M12 14.5 C12 14.5 7.5 11.5 7.5 8.2 C7.5 5.7 9.5 3.8 12 3.8 C14.5 3.8 16.5 5.7 16.5 8.2 C16.5 11.5 12 14.5 12 14.5Z" fill="white" opacity="0.92"/>
+      <rect x="11.3" y="14" width="1.4" height="2.2" rx="0.7" fill="white" opacity="0.92"/>
+      <path d="M12 20 L10 25 L12 23 L14 25 Z" fill="${oscuro}" filter="url(#sh-anp)"/>
+    </svg>
+  `;
+  return el;
+};
+
+// ── Helper: cierra todos los popups activos ────────────────────────────────
+const cerrarTodosLosPopups = (popupCoordenadas, popupANP) => {
+  if (popupCoordenadas.current) {
+    popupCoordenadas.current.remove();
+    popupCoordenadas.current = null;
+  }
+  if (popupANP.current) {
+    popupANP.current.remove();
+    popupANP.current = null;
+  }
+};
+
 // ============================================================================
 const Mapa = memo(({
   elementosFiltrados,
@@ -107,18 +152,22 @@ const Mapa = memo(({
   regionSeleccionada,
   municipioSeleccionado,
   terminoBusqueda,
-  anpSeleccionada           // ← nuevo prop: ANP elegida desde el panel
+  anpSeleccionada,   // ANP seleccionada desde el panel (para flyTo)
+  anps,              // lista completa de ANPs para mostrar marcadores
+  tipoElemento,      // 'concesiones' | 'ordenes' | 'areas_naturales'
+  onSeleccionarANP   // callback al hacer clic en un marcador ANP
 }) => {
-  const contenedorMapa         = useRef(null);
-  const mapa                   = useRef(null);
-  const marcadores             = useRef([]);
-  const popupCoordenadas       = useRef(null);
-  const popupANP               = useRef(null);
-  const poligonosInicializados = useRef(false);
+  const contenedorMapa              = useRef(null);
+  const mapa                        = useRef(null);
+  const marcadores                  = useRef([]);
+  const marcadoresANP               = useRef([]);
+  const popupCoordenadas            = useRef(null);
+  const popupANP                    = useRef(null);
+  const poligonosInicializados      = useRef(false);
   const ultimoElementoSeleccionado  = useRef(null);
-  const ultimaANPSeleccionada       = useRef(null);   // evitar vuelos duplicados
+  const ultimaANPSeleccionada       = useRef(null);
 
-  // ── Capas ANP ──
+  // ── Capas ANP (tileset vectorial) ──
   const agregarCapasANP = useCallback(() => {
     if (!mapa.current || mapa.current.getSource(ANP_SOURCE_ID)) return;
 
@@ -157,6 +206,11 @@ const Mapa = memo(({
     });
     mapa.current.on('click', ANP_FILL_ID, (e) => {
       if (!e.features || e.features.length === 0) return;
+      // Cerrar popup de coordenadas si está abierto
+      if (popupCoordenadas.current) {
+        popupCoordenadas.current.remove();
+        popupCoordenadas.current = null;
+      }
       if (popupANP.current) popupANP.current.remove();
       popupANP.current = new mapboxgl.Popup({
         closeButton: true, closeOnClick: false,
@@ -199,6 +253,22 @@ const Mapa = memo(({
 
       agregarCapasANP();
       configurarEventosANP();
+
+      // ── Cerrar todos los popups al hacer clic en área vacía del mapa ──
+      mapa.current.on('click', (e) => {
+        // Si el clic fue sobre una capa interactiva (ANP fill o polígono orden),
+        // esos handlers ya se encargaron; aquí solo actuamos en clics "libres".
+        const featuresBajoClick = mapa.current.queryRenderedFeatures(e.point, {
+          layers: [ANP_FILL_ID, 'ordenes-poligonos-relleno'].filter(id => {
+            try { return !!mapa.current.getLayer(id); } catch { return false; }
+          })
+        });
+
+        // Si no hay features debajo del clic, cerrar todos los popups
+        if (!featuresBajoClick || featuresBajoClick.length === 0) {
+          cerrarTodosLosPopups(popupCoordenadas, popupANP);
+        }
+      });
     });
 
     return () => {
@@ -206,35 +276,82 @@ const Mapa = memo(({
     };
   }, []);
 
+  // ── Marcadores de ANP ────────────────────────────────────────────────────
+  useEffect(() => {
+    marcadoresANP.current.forEach(m => m.remove());
+    marcadoresANP.current = [];
+
+    if (!mapa.current || tipoElemento !== 'areas_naturales' || !anps?.length) return;
+
+    const nuevos = anps
+      .filter(anp => anp.coords?.length === 2)
+      .map(anp => {
+        const el = crearMarcadorANPDOM(anp.CAT_MANEJO);
+
+        const marcador = new mapboxgl.Marker(el)
+          .setLngLat(anp.coords)
+          .addTo(mapa.current);
+
+        el.addEventListener('click', (e) => {
+          e.stopPropagation(); // evita que dispare el click "vacío" del mapa
+
+          if (popupCoordenadas.current) {
+            popupCoordenadas.current.remove();
+            popupCoordenadas.current = null;
+          }
+          if (popupANP.current) popupANP.current.remove();
+          popupANP.current = new mapboxgl.Popup({
+            closeButton: true, closeOnClick: false,
+            offset: 22, className: 'anp-popup', maxWidth: '340px'
+          })
+            .setLngLat(anp.coords)
+            .setHTML(crearPopupANP({
+              NOMBRE:     anp.NOMBRE,
+              CAT_MANEJO: anp.CAT_MANEJO,
+              MUNICIPIOS: anp.MUNICIPIOS,
+              REGION:     anp.REGION,
+              SUPERFICIE: anp.SUPERFICIE,
+              S_TERRES:   anp.S_TERRES,
+              PRIM_DEC:   anp.PRIM_DEC,
+              ULT_DOF:    anp.ULT_DOF,
+              ID_ANP:     anp.ID_ANP,
+            }))
+            .addTo(mapa.current);
+
+          if (onSeleccionarANP) onSeleccionarANP(anp);
+        });
+
+        return marcador;
+      });
+
+    marcadoresANP.current = nuevos;
+
+    if (nuevos.length > 0) {
+      const limites = new mapboxgl.LngLatBounds();
+      anps.filter(a => a.coords?.length === 2).forEach(a => limites.extend(a.coords));
+      mapa.current.fitBounds(limites, { padding: 80, maxZoom: 10, duration: 1200 });
+    }
+  }, [tipoElemento, anps, onSeleccionarANP]);
+
   // ── Volar a ANP seleccionada desde el panel ──
   useEffect(() => {
     if (!anpSeleccionada || !mapa.current) return;
 
-    // Evitar vuelo duplicado si es la misma ANP
     if (ultimaANPSeleccionada.current?.ID_ANP === anpSeleccionada.ID_ANP) return;
     ultimaANPSeleccionada.current = anpSeleccionada;
 
     const coords = anpSeleccionada.coords;
     if (!coords || coords.length < 2) return;
 
-    // Cerrar popups anteriores
-    if (popupANP.current) popupANP.current.remove();
-    if (popupCoordenadas.current) popupCoordenadas.current.remove();
+    cerrarTodosLosPopups(popupCoordenadas, popupANP);
 
-    // Volar a las coordenadas del ANP
-    mapa.current.flyTo({
-      center: coords,
-      zoom: 10,
-      duration: 1800,
-      essential: true
-    });
+    mapa.current.flyTo({ center: coords, zoom: 10, duration: 1800, essential: true });
 
-    // Mostrar popup con info del ANP tras el vuelo
     mapa.current.once('moveend', () => {
       if (!mapa.current) return;
       popupANP.current = new mapboxgl.Popup({
         closeButton: true, closeOnClick: false,
-        offset: 15, className: 'anp-popup', maxWidth: '340px'
+        offset: 22, className: 'anp-popup', maxWidth: '340px'
       })
         .setLngLat(coords)
         .setHTML(crearPopupANP({
@@ -252,9 +369,9 @@ const Mapa = memo(({
     });
   }, [anpSeleccionada]);
 
-  // ── Popup concesiones/órdenes ──
+  // ── Popup concesiones / órdenes ──
   const mostrarPopupCoordenadas = useCallback((elemento) => {
-    if (popupCoordenadas.current) popupCoordenadas.current.remove();
+    cerrarTodosLosPopups(popupCoordenadas, popupANP);
     popupCoordenadas.current = new mapboxgl.Popup({
       closeButton: true, closeOnClick: false,
       offset: 25, className: 'coordinates-popup'
@@ -337,7 +454,10 @@ const Mapa = memo(({
         .setLngLat(elemento.coords)
         .addTo(mapa.current);
 
-      elementoDOM.addEventListener('click', () => onSeleccionarElemento(elemento));
+      elementoDOM.addEventListener('click', (e) => {
+        e.stopPropagation(); // evita que dispare el click "vacío" del mapa
+        onSeleccionarElemento(elemento);
+      });
       return marcador;
     });
 

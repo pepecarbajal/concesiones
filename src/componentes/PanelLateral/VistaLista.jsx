@@ -8,7 +8,7 @@ const CAT_INFO = {
   'PN': { nombre: 'Parque Nacional',                  color: '#2563eb' },
   'MN': { nombre: 'Monumento Natural',                color: '#9333ea' },
   'AP': { nombre: 'Área de Protección',               color: '#d97706' },
-  'SB': { nombre: 'Santuario',                        color: '#0d9488' },
+  'SANT': { nombre: 'Santuario',                        color: '#0d9488' },
   'FL': { nombre: 'Área de Protección Flora y Fauna', color: '#db2777' },
 };
 

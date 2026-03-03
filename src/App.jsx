@@ -214,6 +214,9 @@ function App() {
         municipioSeleccionado={selectedMunicipio}
         terminoBusqueda={activeSearchTerm}
         anpSeleccionada={anpSeleccionada}
+        anps={AREAS_NATURALES}
+        tipoElemento={tipoElemento}
+        onSeleccionarANP={manejarSeleccionANP}
       />
 
       <BarraFiltros
