@@ -4,13 +4,15 @@ const SUPERFICIE_GUERRERO_HA = 6_364_100;
 
 const COLORES = [
   '#818cf8', '#a78bfa', '#c084fc', '#e879f9',
-  '#fb7185', '#f472b6', '#60a5fa', '#34d399'
+  '#fb7185', '#f472b6', '#60a5fa', '#34d399',
+  '#facc15', '#f97316'
 ];
 
 // ── Barra individual reutilizable ────────────────────────────────────────────
-const BaraItem = ({ nombre, subtitulo, superficie, maxSup, color, index, animado, numero }) => {
-  const pct       = (superficie / maxSup) * 100;
-  const pctEstado = ((superficie / SUPERFICIE_GUERRERO_HA) * 100).toFixed(3);
+const BaraItem = ({ nombre, subtitulo, superficie, maxSup, totalConcesionado, color, index, animado, numero }) => {
+  const pct              = (superficie / maxSup) * 100;
+  const pctEstado        = ((superficie / SUPERFICIE_GUERRERO_HA) * 100).toFixed(2);
+  const pctConcesionado  = ((superficie / totalConcesionado) * 100).toFixed(2);
 
   return (
     <div className="stats-bar-row">
@@ -38,8 +40,10 @@ const BaraItem = ({ nombre, subtitulo, superficie, maxSup, color, index, animado
         <span className="stats-bar-ha">
           {Number(superficie.toFixed(0)).toLocaleString('es-MX')} ha
         </span>
-        <span className="stats-bar-pct-estado" style={{ color }}>
-          {pctEstado}%
+        <span className="stats-bar-pcts">
+          <span className="stats-bar-pct-estado" style={{ color, fontSize: '1rem' }}>{pctEstado}%</span>
+          <span style={{ color: '#000000', margin: '0 3px' }}>/</span>
+          <span className="stats-bar-pct-concesionado" style={{ color: '#000000', fontSize: '1rem' }}>{pctConcesionado}%</span>
         </span>
       </div>
     </div>
@@ -72,12 +76,12 @@ const ModalEstadisticas = ({
 
   // ── Datos globales (KPIs) ────────────────────────────────
   const { totalSup, porcentajeEstado } = useMemo(() => {
-    const totalSup       = elementosFiltrados.reduce((s, e) => s + parseFloat(e.superficie || 0), 0);
+    const totalSup         = elementosFiltrados.reduce((s, e) => s + parseFloat(e.superficie || 0), 0);
     const porcentajeEstado = ((totalSup / SUPERFICIE_GUERRERO_HA) * 100).toFixed(2);
     return { totalSup, porcentajeEstado };
   }, [elementosFiltrados]);
 
-  // ── Datos vista EMPRESA ──────────────────────────────────
+  // ── Datos vista EMPRESA — TOP 10 ─────────────────────────
   const datosEmpresa = useMemo(() => {
     const mapa = new Map();
 
@@ -101,12 +105,12 @@ const ModalEstadisticas = ({
     const arr = Array.from(mapa.entries())
       .map(([nombre, v]) => ({ nombre, ...v }))
       .sort((a, b) => b.superficie - a.superficie)
-      .slice(0, 8);
+      .slice(0, 10); // ← TOP 10
 
     return { arr, maxSup: arr[0]?.superficie || 1 };
   }, [elementosFiltrados]);
 
-  // ── Datos vista CONCESIÓN ────────────────────────────────
+  // ── Datos vista CONCESIÓN — TOP 10 ──────────────────────
   const datosConcesion = useMemo(() => {
     const arr = elementosFiltrados
       .filter(e => e.tipo !== 'orden_exploracion')   // solo concesiones
@@ -119,7 +123,7 @@ const ModalEstadisticas = ({
       }))
       .filter(e => e.superficie > 0)
       .sort((a, b) => b.superficie - a.superficie)
-      .slice(0, 10);
+      .slice(0, 10); // ← TOP 10
 
     return { arr, maxSup: arr[0]?.superficie || 1 };
   }, [elementosFiltrados]);
@@ -172,7 +176,7 @@ const ModalEstadisticas = ({
           </div>
           <div className="stats-kpi">
             <span className="stats-kpi-value stats-kpi-pct">{porcentajeEstado}%</span>
-            <span className="stats-kpi-label">de la superficie del Estado de Guerrero</span>
+            <span className="stats-kpi-label">del Estado de Guerrero</span>
           </div>
         </div>
 
@@ -205,14 +209,28 @@ const ModalEstadisticas = ({
 
         {/* ── Gráfica ── */}
         <div className="stats-chart-section">
-          <h3 className="stats-chart-title">
+          <h3 className="stats-chart-title" style={{ color: '#000'}}>
             {vista === 'empresa'
-              ? 'Empresas con mayor superficie concesionada'
-              : 'Concesiones más grandes en el filtro actual'}
+              ? 'Top 10 empresas con mayor superficie concesionada'
+              : 'Top 10 concesiones más grandes en el filtro actual'}
             {datosActivos.arr.length === 0 && (
               <span className="stats-empty"> — Sin datos</span>
             )}
           </h3>
+
+          {/* Leyenda de porcentajes */}
+          {datosActivos.arr.length > 0 && (
+            <div className="stats-pct-legend" style={{ marginBottom: '12px', display: 'flex', gap: '20px', justifyContent: 'right' }}>
+              <span className="stats-pct-legend-item" style={{ fontSize: '0.9rem', color: '#000000' }}>
+                <span className="stats-pct-legend-dot" style={{ background: '#818cf8' }} />
+                % del estado de Guerrero
+              </span>
+              <span className="stats-pct-legend-item" style={{ fontSize: '0.9rem', color: '#000000' }}>
+                <span className="stats-pct-legend-dot" style={{ background: '#020202' }} />
+                % del total concesionado
+              </span>
+            </div>
+          )}
 
           <div className="stats-bars">
             {datosActivos.arr.map((item, i) => (
@@ -222,6 +240,7 @@ const ModalEstadisticas = ({
                 subtitulo={vista === 'concesion' ? item.subtitulo : null}
                 superficie={item.superficie}
                 maxSup={datosActivos.maxSup}
+                totalConcesionado={totalSup}
                 color={COLORES[i % COLORES.length]}
                 index={i}
                 animado={animado}
@@ -232,10 +251,10 @@ const ModalEstadisticas = ({
         </div>
 
         {/* ── Nota ── */}
-        <p className="stats-footer-note">
-          * Porcentajes calculados sobre la superficie total del estado de Guerrero (6,364,100 ha).
+        <p className="stats-footer-note" style={{ color: '#000' }}>
+          * "% del estado" calculado sobre la superficie total de Guerrero (6,364,100 ha).
+          "% del total concesionado" calculado sobre la superficie total de los elementos visibles con los filtros actuales.
           {vista === 'concesion' && ' Vista "Por Concesión" excluye órdenes de exploración.'}
-          {' '}Los datos reflejan únicamente los elementos visibles con los filtros actuales.
         </p>
 
       </div>

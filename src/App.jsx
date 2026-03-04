@@ -10,6 +10,7 @@ import BarraFiltros from './componentes/BarraFiltros/BarraFiltros';
 import PanelLateral from './componentes/PanelLateral/PanelLateral';
 import BotonesMovil from './componentes/BotonesMovil/BotonesMovil';
 import ModalEstadisticas from './componentes/ModalEstadisticas/ModalEstadisticas';
+import LandingPage from './componentes/LandingPage/LandingPage';
 
 import { procesarConcesiones, procesarOrdenesExploracion } from './utilidades/procesadorDatos';
 
@@ -43,7 +44,7 @@ const buscarEnElemento = (elemento, termino) => {
          elemento.titulo?.toString().toLowerCase().includes(terminoLower);
 };
 
-function App() {
+function MapaApp() {
   const [selectedEstado, setSelectedEstado]       = useState('');
   const [selectedRegion, setSelectedRegion]       = useState('');
   const [selectedMunicipio, setSelectedMunicipio] = useState('');
@@ -57,9 +58,7 @@ function App() {
   const [filtersVisible, setFiltersVisible]       = useState(true);
   const [isMobile, setIsMobile]                   = useState(false);
   const [modalEstadisticasVisible, setModalEstadisticasVisible] = useState(false);
-
-  // ── Estado puente: ANP seleccionada desde el panel → vuela en el mapa ──
-  const [anpSeleccionada, setAnpSeleccionada] = useState(null);
+  const [anpSeleccionada, setAnpSeleccionada]     = useState(null);
 
   useEffect(() => {
     let timeoutId;
@@ -84,7 +83,6 @@ function App() {
   }, []);
 
   const filteredConcesiones = useMemo(() => {
-    // En modo ANP no mostramos marcadores de concesiones/órdenes
     if (tipoElemento === 'areas_naturales') return [];
 
     let datosConcesionesFiltrados = CONCESIONES_PROCESADAS;
@@ -123,26 +121,18 @@ function App() {
     setSelectedConcesion(null); setSearchTerm(''); setActiveSearchTerm('');
   }, []);
 
-  const manejarCambioMunicipio = useCallback((municipio) => {
-    setSelectedMunicipio(municipio); setSelectedConcesion(null);
-  }, []);
-
-  const manejarBusqueda        = useCallback((t) => setSearchTerm(t), []);
-
-  const manejarActivarBusqueda = useCallback(() => {
+  const manejarCambioMunicipio    = useCallback((municipio) => { setSelectedMunicipio(municipio); setSelectedConcesion(null); }, []);
+  const manejarBusqueda           = useCallback((t) => setSearchTerm(t), []);
+  const manejarActivarBusqueda    = useCallback(() => {
     setActiveSearchTerm(searchTerm);
     if (searchTerm.length > 0) { setSelectedRegion(''); setSelectedMunicipio(''); }
   }, [searchTerm]);
-
-  const manejarLimpiarBusqueda = useCallback(() => {
-    setSearchTerm(''); setActiveSearchTerm(''); setSelectedConcesion(null);
-  }, []);
+  const manejarLimpiarBusqueda    = useCallback(() => { setSearchTerm(''); setActiveSearchTerm(''); setSelectedConcesion(null); }, []);
 
   const manejarCambiarTipo = useCallback((tipo) => {
     setTipoElemento(tipo);
     setSelectedConcesion(null);
     setCurrentIndex(0);
-    // Limpiar ANP seleccionada al cambiar de tipo
     if (tipo !== 'areas_naturales') setAnpSeleccionada(null);
   }, []);
 
@@ -156,8 +146,6 @@ function App() {
     if (isMobile) setPanelVisible(false);
   }, [filteredConcesiones, isMobile]);
 
-  // ── Cuando el usuario selecciona un ANP en el panel, actualizamos el estado
-  //    que el Mapa observa para hacer flyTo ──
   const manejarSeleccionANP = useCallback((anp) => {
     setAnpSeleccionada(anp);
     if (isMobile) setPanelVisible(false);
@@ -270,6 +258,46 @@ function App() {
         />
       )}
     </div>
+  );
+}
+
+// ── Root App with view routing ────────────────────────────────────────────────
+function App() {
+  // Check if user has visited before to skip landing (optional)
+  const [view, setView] = useState('landing'); // 'landing' | 'map'
+  const [transitioning, setTransitioning] = useState(false);
+
+  const handleEnterMap = useCallback(() => {
+    setTransitioning(true);
+    setTimeout(() => {
+      setView('map');
+      setTransitioning(false);
+    }, 500);
+  }, []);
+
+  return (
+    <>
+      <style>{`
+        .view-transition {
+          position: fixed;
+          inset: 0;
+          background: #0a0806;
+          z-index: 9999;
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 0.5s ease;
+        }
+        .view-transition.active { opacity: 1; }
+      `}</style>
+
+      <div className={`view-transition ${transitioning ? 'active' : ''}`} />
+
+      {view === 'landing' ? (
+        <LandingPage onEnterMap={handleEnterMap} />
+      ) : (
+        <MapaApp />
+      )}
+    </>
   );
 }
 
