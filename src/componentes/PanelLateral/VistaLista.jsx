@@ -4,12 +4,12 @@ import ElementoLista from './componentes/ElementoLista';
 import { LIMITES_VISUALIZACION } from '../../utilidades/constantes';
 
 const CAT_INFO = {
-  'RB': { nombre: 'Reserva de Biosfera',              color: '#16a34a' },
-  'PN': { nombre: 'Parque Nacional',                  color: '#2563eb' },
-  'MN': { nombre: 'Monumento Natural',                color: '#9333ea' },
-  'AP': { nombre: 'Área de Protección',               color: '#d97706' },
+  'RB':   { nombre: 'Reserva de Biosfera',              color: '#16a34a' },
+  'PN':   { nombre: 'Parque Nacional',                  color: '#2563eb' },
+  'MN':   { nombre: 'Monumento Natural',                color: '#9333ea' },
+  'AP':   { nombre: 'Área de Protección',               color: '#d97706' },
   'SANT': { nombre: 'Santuario',                        color: '#0d9488' },
-  'FL': { nombre: 'Área de Protección Flora y Fauna', color: '#db2777' },
+  'FL':   { nombre: 'Área de Protección Flora y Fauna', color: '#db2777' },
 };
 
 // ── Lista de ANP ──────────────────────────────────────────────────────────────
@@ -105,10 +105,10 @@ const VistaLista = memo(({
   onMostrarEstadisticas
 }) => {
   const estadisticas = useMemo(() => {
-    const totalElementos   = elementos.length;
-    const municipiosUnicos = new Set(elementos.map(e => e.municipio)).size;
+    const totalElementos    = elementos.length;
+    const municipiosUnicos  = new Set(elementos.map(e => e.municipio)).size;
     const elementosVigentes = elementos.filter(e => e.estado === 'Vigente').length;
-    const superficieTotal  = elementos.reduce(
+    const superficieTotal   = elementos.reduce(
       (suma, e) => suma + parseFloat(e.superficie || 0), 0
     ).toFixed(0);
     return { totalElementos, municipiosUnicos, elementosVigentes, superficieTotal };
@@ -119,70 +119,41 @@ const VistaLista = memo(({
     [elementos]
   );
 
-  const hayMasElementos = elementos.length > LIMITES_VISUALIZACION.maximoElementosLista;
+  const hayMasElementos    = elementos.length > LIMITES_VISUALIZACION.maximoElementosLista;
   const manejarClickElemento = useCallback((el) => onSeleccionarElemento(el), [onSeleccionarElemento]);
   const esANP = tipoElemento === 'areas_naturales';
+
+  // Título y color según el tipo activo
+  const TIPO_HEADER = {
+    concesiones:     { titulo: 'Concesiones Mineras',        color: '#e8a838', gradiente: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+    ordenes:         { titulo: 'Órdenes de Exploración',     color: '#5b9cf6', gradiente: 'linear-gradient(135deg, #3b6fd4 0%, #5b9cf6 100%)' },
+    areas_naturales: { titulo: 'Áreas Naturales Protegidas', color: '#4ade80', gradiente: 'linear-gradient(135deg, #166534 0%, #15803d 100%)' },
+  };
+  const headerInfo = TIPO_HEADER[tipoElemento] || TIPO_HEADER.concesiones;
 
   return (
     <div className="side-panel-content">
       {/* ── Header ── */}
-      <div className={`panel-header panel-header-main${esANP ? ' panel-header-anp' : ''}`}>
-        <h2 className="panel-title">Cartografía Minera</h2>
+      <div
+        className="panel-header panel-header-main"
+        style={{ background: headerInfo.gradiente }}
+      >
+        <h2 className="panel-title">{headerInfo.titulo}</h2>
         <p className="panel-subtitle">Estado de Guerrero</p>
 
-        {/* Fila 1: Concesiones + Órdenes */}
-        <div className="panel-tipo-selector">
-          <button
-            onClick={() => onCambiarTipo('concesiones')}
-            className={`panel-tipo-btn ${tipoElemento === 'concesiones' ? 'active' : ''}`}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" />
-            </svg>
-            Concesiones
-            <span className="panel-tipo-count">{totalConcesiones}</span>
-          </button>
-          <button
-            onClick={() => onCambiarTipo('ordenes')}
-            className={`panel-tipo-btn ${tipoElemento === 'ordenes' ? 'active' : ''}`}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="12 2 2 7 12 12 22 7 12 2" />
-              <polyline points="2 17 12 22 22 17" />
-              <polyline points="2 12 12 17 22 12" />
-            </svg>
-            Órdenes
-            <span className="panel-tipo-count">{totalOrdenes}</span>
-          </button>
-        </div>
-
-        {/* Fila 2: ANP + Estadísticas */}
-        <div className="panel-tipo-selector panel-tipo-selector-secondary">
-          <button
-            onClick={() => onCambiarTipo('areas_naturales')}
-            className={`panel-tipo-btn panel-tipo-btn-secondary ${esANP ? 'active' : ''}`}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 22V12" />
-              <path d="M12 12C12 12 7 9 7 5a5 5 0 0 1 10 0c0 4-5 7-5 7z" />
-              <path d="M12 12c-1 1-4 3-6 6" /><path d="M12 12c1 1 4 3 6 6" />
-            </svg>
-            Áreas Naturales Protegidas
-            <span className="panel-tipo-count">{totalANPs}</span>
-          </button>
-          <button
-            onClick={onMostrarEstadisticas}
-            className="panel-tipo-btn panel-tipo-btn-secondary panel-tipo-btn-estadisticas"
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="20" x2="18" y2="10" />
-              <line x1="12" y1="20" x2="12" y2="4" />
-              <line x1="6" y1="20" x2="6" y2="14" />
-              <line x1="2" y1="20" x2="22" y2="20" />
-            </svg>
-            Estadísticas
-          </button>
-        </div>
+        {/* Botón de estadísticas — inline en el header del panel */}
+        <button
+          onClick={onMostrarEstadisticas}
+          className="panel-btn-estadisticas"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+            <line x1="2" y1="20" x2="22" y2="20"/>
+          </svg>
+          Estadísticas
+        </button>
       </div>
 
       {/* ── Vista ANP ── */}

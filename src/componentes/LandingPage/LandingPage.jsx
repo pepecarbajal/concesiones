@@ -14,10 +14,8 @@ function useLiveMetals() {
           fetch(GOLD_URL),
           fetch(SILVER_URL),
         ]);
-
         const goldData   = await goldRes.json();
         const silverData = await silverRes.json();
-
         setPrices({
           gold:   goldData?.price   ?? null,
           silver: silverData?.price ?? null,
@@ -28,9 +26,8 @@ function useLiveMetals() {
         setLoading(false);
       }
     };
-
     fetchAll();
-    const id = setInterval(fetchAll, 5_000); // cada 5 segundos
+    const id = setInterval(fetchAll, 5_000);
     return () => clearInterval(id);
   }, []);
 
@@ -70,21 +67,32 @@ export default function LandingPage({ onEnterMap }) {
         .lp-header {
           position:absolute; top:0; left:0; right:0; z-index:10;
           display:flex; align-items:center; justify-content:flex-end;
+          gap:10px;
           padding:20px 32px;
         }
 
         .lp-btn {
           display:flex; align-items:center; gap:8px;
-          padding:10px 24px;
+          padding:10px 20px;
           background:rgba(255,255,255,0.12);
           border:1.5px solid rgba(255,255,255,0.4);
           border-radius:8px;
           color:white; font-family:'Inter',sans-serif;
-          font-size:14px; font-weight:600;
+          font-size:13px; font-weight:600;
           cursor:pointer; backdrop-filter:blur(8px);
-          transition:background 0.2s, border-color 0.2s;
+          transition:background 0.2s, border-color 0.2s, transform 0.15s;
+          white-space:nowrap;
         }
-        .lp-btn:hover { background:rgba(255,255,255,0.22); border-color:white; }
+        .lp-btn:hover { transform:translateY(-2px); }
+
+        .lp-btn-concesiones { border-color:rgba(239,68,68,0.5); }
+        .lp-btn-concesiones:hover { background:rgba(239,68,68,0.2); border-color:#ef4444; }
+
+        .lp-btn-ordenes { border-color:rgba(255,165,0,0.5); }
+        .lp-btn-ordenes:hover { background:rgba(255,165,0,0.2); border-color:#FFA500; }
+
+        .lp-btn-anp { border-color:rgba(74,222,128,0.5); }
+        .lp-btn-anp:hover { background:rgba(74,222,128,0.2); border-color:#4ade80; }
 
         .lp-center {
           position:absolute; inset:0; z-index:5;
@@ -158,11 +166,12 @@ export default function LandingPage({ onEnterMap }) {
         }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
 
-        @media(max-width:640px) {
+        @media(max-width:768px) {
           .lp-metals { flex-direction:column; width:calc(100% - 48px); bottom:24px; white-space:normal; }
           .lp-metal { min-width:unset; }
-          .lp-header { padding:16px 20px; }
-          .lp-live { left:20px; top:22px; }
+          .lp-header { padding:14px 16px; gap:6px; flex-wrap:wrap; justify-content:center; }
+          .lp-btn { font-size:11px; padding:8px 12px; }
+          .lp-live { left:20px; top:18px; }
         }
       `}</style>
 
@@ -170,19 +179,38 @@ export default function LandingPage({ onEnterMap }) {
         <div className="lp-bg" />
         <div className="lp-overlay" />
 
-        {/* Header */}
+        <div className="lp-live">
+          <div className="lp-live-dot" />
+          EN VIVO
+        </div>
+
         <header className="lp-header">
-          <button className="lp-btn" onClick={onEnterMap}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
-              <line x1="8" y1="2" x2="8" y2="18"/>
-              <line x1="16" y1="6" x2="16" y2="22"/>
+          <button className="lp-btn lp-btn-concesiones" onClick={() => onEnterMap('concesiones')}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
             </svg>
-            Ver Mapa
+            Concesiones Mineras
+          </button>
+
+          <button className="lp-btn lp-btn-ordenes" onClick={() => onEnterMap('ordenes')}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+              <polyline points="2 17 12 22 22 17"/>
+              <polyline points="2 12 12 17 22 12"/>
+            </svg>
+            Órdenes de Exploración
+          </button>
+
+          <button className="lp-btn lp-btn-anp" onClick={() => onEnterMap('areas_naturales')}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22V12"/>
+              <path d="M12 12C12 12 7 9 7 5a5 5 0 0 1 10 0c0 4-5 7-5 7z"/>
+              <path d="M12 12c-1 1-4 3-6 6"/><path d="M12 12c1 1 4 3 6 6"/>
+            </svg>
+            Áreas Naturales Protegidas
           </button>
         </header>
 
-        {/* Hero */}
         <main className="lp-center">
           <h1 className="lp-title">
             Información Minera del<br />
@@ -191,21 +219,20 @@ export default function LandingPage({ onEnterMap }) {
           <div className="lp-divider" />
         </main>
 
-        {/* Precios de metales */}
         <div className="lp-metals">
           <div className="lp-metal">
             <div className="lp-metal-name">Oro · USD / oz</div>
             <div className="lp-metal-price">
               {loading ? <span className="lp-skeleton" /> : fmt(prices.gold)}
             </div>
-            <div className="lp-metal-sub">por onza</div>
+            <div className="lp-metal-sub"></div>
           </div>
           <div className="lp-metal">
             <div className="lp-metal-name">Plata · USD / oz</div>
             <div className="lp-metal-price">
               {loading ? <span className="lp-skeleton" /> : fmt(prices.silver)}
             </div>
-            <div className="lp-metal-sub">por onza</div>
+            <div className="lp-metal-sub"></div>
           </div>
         </div>
       </div>

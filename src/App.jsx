@@ -44,12 +44,13 @@ const buscarEnElemento = (elemento, termino) => {
          elemento.titulo?.toString().toLowerCase().includes(terminoLower);
 };
 
-function MapaApp() {
+// ── MapaApp ───────────────────────────────────────────────────────────────────
+function MapaApp({ tipoInicial, onRegresarLanding }) {
   const [selectedEstado, setSelectedEstado]       = useState('');
   const [selectedRegion, setSelectedRegion]       = useState('');
   const [selectedMunicipio, setSelectedMunicipio] = useState('');
   const [yearFilter, setYearFilter]               = useState('');
-  const [tipoElemento, setTipoElemento]           = useState('concesiones');
+  const [tipoElemento, setTipoElemento]           = useState(tipoInicial || 'concesiones');
   const [searchTerm, setSearchTerm]               = useState('');
   const [activeSearchTerm, setActiveSearchTerm]   = useState('');
   const [selectedConcesion, setSelectedConcesion] = useState(null);
@@ -121,13 +122,17 @@ function MapaApp() {
     setSelectedConcesion(null); setSearchTerm(''); setActiveSearchTerm('');
   }, []);
 
-  const manejarCambioMunicipio    = useCallback((municipio) => { setSelectedMunicipio(municipio); setSelectedConcesion(null); }, []);
-  const manejarBusqueda           = useCallback((t) => setSearchTerm(t), []);
-  const manejarActivarBusqueda    = useCallback(() => {
+  const manejarCambioMunicipio = useCallback((municipio) => {
+    setSelectedMunicipio(municipio); setSelectedConcesion(null);
+  }, []);
+  const manejarBusqueda        = useCallback((t) => setSearchTerm(t), []);
+  const manejarActivarBusqueda = useCallback(() => {
     setActiveSearchTerm(searchTerm);
     if (searchTerm.length > 0) { setSelectedRegion(''); setSelectedMunicipio(''); }
   }, [searchTerm]);
-  const manejarLimpiarBusqueda    = useCallback(() => { setSearchTerm(''); setActiveSearchTerm(''); setSelectedConcesion(null); }, []);
+  const manejarLimpiarBusqueda = useCallback(() => {
+    setSearchTerm(''); setActiveSearchTerm(''); setSelectedConcesion(null);
+  }, []);
 
   const manejarCambiarTipo = useCallback((tipo) => {
     setTipoElemento(tipo);
@@ -161,7 +166,9 @@ function MapaApp() {
 
   const obtenerMunicipiosFiltrados = useMemo(() => {
     if (!selectedRegion) return MUNICIPIOS_UNICOS;
-    return [...new Set(CONCESIONES_PROCESADAS.filter(c => c.region === selectedRegion).map(c => c.municipio))].sort();
+    return [...new Set(
+      CONCESIONES_PROCESADAS.filter(c => c.region === selectedRegion).map(c => c.municipio)
+    )].sort();
   }, [selectedRegion]);
 
   const obtenerAniosUnicos = useMemo(() => {
@@ -182,9 +189,24 @@ function MapaApp() {
   return (
     <div className="app-container">
       <header className="app-header">
+        {/* ── Botón regresar al inicio ── */}
+        <button
+          className="btn-regresar"
+          onClick={onRegresarLanding}
+          title="Regresar al inicio"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 5l-7 7 7 7"/>
+          </svg>
+          <span className="btn-regresar-label">Inicio</span>
+        </button>
+
+        {/* ── Título ── */}
         <div className="app-header-brand">
           <h1 className="app-header-title">Información Minera del Estado de Guerrero</h1>
         </div>
+
+
       </header>
 
       <BotonesMovil
@@ -250,44 +272,111 @@ function MapaApp() {
 
       {modalEstadisticasVisible && (
         <ModalEstadisticas
-          elementosFiltrados={filteredConcesiones}
+          elementosFiltrados={
+            tipoElemento === 'areas_naturales' ? [] : filteredConcesiones
+          }
+          anps={tipoElemento === 'areas_naturales' ? AREAS_NATURALES : []}
+          tipoElemento={tipoElemento}
           regionSeleccionada={selectedRegion}
           municipioSeleccionado={selectedMunicipio}
           filtroAnio={yearFilter}
           onCerrar={() => setModalEstadisticasVisible(false)}
+          totalConcesionesGuerrero={
+            CONCESIONES_PROCESADAS.reduce((s, c) => s + parseFloat(c.superficie || 0), 0)
+          }
+          totalOrdenesGuerrero={
+            ORDENES_PROCESADAS.reduce((s, o) => s + parseFloat(o.superficie || 0), 0)
+          }
         />
       )}
     </div>
   );
 }
 
-// ── Root App with view routing ────────────────────────────────────────────────
+// ── Root App ──────────────────────────────────────────────────────────────────
 function App() {
-  // Check if user has visited before to skip landing (optional)
-  const [view, setView] = useState('landing'); // 'landing' | 'map'
+  const [view, setView]               = useState('landing');
+  const [tipoInicial, setTipoInicial] = useState('concesiones');
   const [transitioning, setTransitioning] = useState(false);
 
-  const handleEnterMap = useCallback(() => {
+  const handleEnterMap = useCallback((tipo) => {
+    setTipoInicial(tipo || 'concesiones');
     setTransitioning(true);
-    setTimeout(() => {
-      setView('map');
-      setTransitioning(false);
-    }, 500);
+    setTimeout(() => { setView('map'); setTransitioning(false); }, 500);
+  }, []);
+
+  const handleRegresarLanding = useCallback(() => {
+    setTransitioning(true);
+    setTimeout(() => { setView('landing'); setTransitioning(false); }, 500);
   }, []);
 
   return (
     <>
       <style>{`
         .view-transition {
-          position: fixed;
-          inset: 0;
-          background: #0a0806;
-          z-index: 9999;
-          pointer-events: none;
-          opacity: 0;
-          transition: opacity 0.5s ease;
+          position: fixed; inset: 0;
+          background: #08070a;
+          z-index: 9999; pointer-events: none;
+          opacity: 0; transition: opacity 0.5s ease;
         }
         .view-transition.active { opacity: 1; }
+
+        /* ── Botón regresar ── */
+        .btn-regresar {
+          display: flex; align-items: center; gap: 6px;
+          padding: 7px 14px;
+          background: rgba(255,255,255,0.12);
+          border: 1px solid rgba(255,255,255,0.25);
+          border-radius: 9px;
+          color: white;
+          font-size: 13px; font-weight: 600;
+          font-family: inherit;
+          cursor: pointer;
+          transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+
+        .btn-regresar:hover {
+          background: rgba(255,255,255,0.22);
+          border-color: rgba(255,255,255,0.45);
+          transform: translateX(-2px);
+        }
+
+        .btn-regresar svg {
+          flex-shrink: 0;
+          transition: transform 0.2s ease;
+        }
+
+        .btn-regresar:hover svg {
+          transform: translateX(-2px);
+        }
+
+        @media (max-width: 768px) {
+          .btn-regresar-label { display: none; }
+          .btn-regresar { padding: 7px 10px; }
+        }
+
+        /* ── Botón estadísticas dentro del panel lateral ── */
+        .panel-btn-estadisticas {
+          display: flex; align-items: center; justify-content: center; gap: 7px;
+          margin-top: 14px;
+          padding: 8px 16px;
+          width: 100%;
+          background: rgba(255,255,255,0.14);
+          border: 1px solid rgba(255,255,255,0.25);
+          border-radius: 9px;
+          color: white;
+          font-size: 12px; font-weight: 600;
+          font-family: inherit;
+          cursor: pointer;
+          transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .panel-btn-estadisticas:hover {
+          background: rgba(255,255,255,0.24);
+          border-color: rgba(255,255,255,0.4);
+        }
       `}</style>
 
       <div className={`view-transition ${transitioning ? 'active' : ''}`} />
@@ -295,7 +384,7 @@ function App() {
       {view === 'landing' ? (
         <LandingPage onEnterMap={handleEnterMap} />
       ) : (
-        <MapaApp />
+        <MapaApp tipoInicial={tipoInicial} onRegresarLanding={handleRegresarLanding} />
       )}
     </>
   );
