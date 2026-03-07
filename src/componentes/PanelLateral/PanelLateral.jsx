@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import VistaDetalle from './VistaDetalle';
 import VistaDetalleANP from './VistaDetalleANP';
 import VistaLista from './VistaLista';
@@ -15,8 +15,9 @@ const PanelLateral = ({
   totalOrdenes,
   anps,
   totalANPs,
+  anpSeleccionadaExterna,  // ← ANP seleccionada desde el mapa
   onSeleccionarElemento,
-  onSeleccionarANP,        // ← nuevo: notifica a App la ANP seleccionada
+  onSeleccionarANP,
   onDeseleccionar,
   onNavegarAnterior,
   onNavegarSiguiente,
@@ -25,11 +26,18 @@ const PanelLateral = ({
   const [anpSeleccionada, setAnpSeleccionada] = useState(null);
   const [indiceANP, setIndiceANP] = useState(0);
 
+  // Sincronizar cuando el usuario hace clic en el mapa
+  useEffect(() => {
+    if (!anpSeleccionadaExterna) return;
+    const idx = anps.findIndex(a => a.ID_ANP === anpSeleccionadaExterna.ID_ANP);
+    setIndiceANP(idx >= 0 ? idx : 0);
+    setAnpSeleccionada(anpSeleccionadaExterna);
+  }, [anpSeleccionadaExterna, anps]);
+
   const manejarSeleccionANP = useCallback((anp) => {
     const idx = anps.findIndex(a => a.ID_ANP === anp.ID_ANP);
     setIndiceANP(idx >= 0 ? idx : 0);
     setAnpSeleccionada(anp);
-    // Notificar al App (y al Mapa) para que vuele a las coordenadas
     if (onSeleccionarANP) onSeleccionarANP(anp);
   }, [anps, onSeleccionarANP]);
 
@@ -58,8 +66,8 @@ const PanelLateral = ({
     onCambiarTipo(tipo);
   }, [onCambiarTipo]);
 
-  const mostrarDetalleANP        = tipoElemento === 'areas_naturales' && anpSeleccionada;
-  const mostrarDetalleConcesion  = tipoElemento !== 'areas_naturales' && elementoSeleccionado;
+  const mostrarDetalleANP       = tipoElemento === 'areas_naturales' && anpSeleccionada;
+  const mostrarDetalleConcesion = tipoElemento !== 'areas_naturales' && elementoSeleccionado;
 
   return (
     <div className={`side-panel ${visible ? 'panel-visible' : 'panel-hidden'}`}>

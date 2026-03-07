@@ -45,7 +45,7 @@ const buscarEnElemento = (elemento, termino) => {
 };
 
 // ── MapaApp ───────────────────────────────────────────────────────────────────
-function MapaApp({ tipoInicial, onRegresarLanding }) {
+function MapaApp({ tipoInicial, visible, onRegresarLanding }) {
   const [selectedEstado, setSelectedEstado]       = useState('');
   const [selectedRegion, setSelectedRegion]       = useState('');
   const [selectedMunicipio, setSelectedMunicipio] = useState('');
@@ -60,6 +60,10 @@ function MapaApp({ tipoInicial, onRegresarLanding }) {
   const [isMobile, setIsMobile]                   = useState(false);
   const [modalEstadisticasVisible, setModalEstadisticasVisible] = useState(false);
   const [anpSeleccionada, setAnpSeleccionada]     = useState(null);
+
+  useEffect(() => {
+    if (tipoInicial) setTipoElemento(tipoInicial);
+  }, [tipoInicial]);
 
   useEffect(() => {
     let timeoutId;
@@ -187,9 +191,8 @@ function MapaApp({ tipoInicial, onRegresarLanding }) {
   }, []);
 
   return (
-    <div className="app-container">
+    <div className="app-container" style={{ display: visible ? 'block' : 'none' }}>
       <header className="app-header">
-        {/* ── Botón regresar al inicio ── */}
         <button
           className="btn-regresar"
           onClick={onRegresarLanding}
@@ -201,12 +204,9 @@ function MapaApp({ tipoInicial, onRegresarLanding }) {
           <span className="btn-regresar-label">Inicio</span>
         </button>
 
-        {/* ── Título ── */}
         <div className="app-header-brand">
           <h1 className="app-header-title">Información Minera del Estado de Guerrero</h1>
         </div>
-
-
       </header>
 
       <BotonesMovil
@@ -262,6 +262,7 @@ function MapaApp({ tipoInicial, onRegresarLanding }) {
         totalOrdenes={ORDENES_PROCESADAS.length}
         anps={AREAS_NATURALES}
         totalANPs={AREAS_NATURALES.length}
+        anpSeleccionadaExterna={anpSeleccionada}
         onSeleccionarElemento={manejarSeleccionElemento}
         onSeleccionarANP={manejarSeleccionANP}
         onDeseleccionar={() => setSelectedConcesion(null)}
@@ -298,11 +299,16 @@ function App() {
   const [view, setView]               = useState('landing');
   const [tipoInicial, setTipoInicial] = useState('concesiones');
   const [transitioning, setTransitioning] = useState(false);
+  const [mapaListo, setMapaListo]     = useState(false);
 
   const handleEnterMap = useCallback((tipo) => {
     setTipoInicial(tipo || 'concesiones');
     setTransitioning(true);
-    setTimeout(() => { setView('map'); setTransitioning(false); }, 500);
+    setTimeout(() => {
+      setMapaListo(true); // asegura que MapaApp se haya montado
+      setView('map');
+      setTransitioning(false);
+    }, 500);
   }, []);
 
   const handleRegresarLanding = useCallback(() => {
@@ -321,7 +327,6 @@ function App() {
         }
         .view-transition.active { opacity: 1; }
 
-        /* ── Botón regresar ── */
         .btn-regresar {
           display: flex; align-items: center; gap: 6px;
           padding: 7px 14px;
@@ -357,7 +362,6 @@ function App() {
           .btn-regresar { padding: 7px 10px; }
         }
 
-        /* ── Botón estadísticas dentro del panel lateral ── */
         .panel-btn-estadisticas {
           display: flex; align-items: center; justify-content: center; gap: 7px;
           margin-top: 14px;
@@ -381,10 +385,18 @@ function App() {
 
       <div className={`view-transition ${transitioning ? 'active' : ''}`} />
 
-      {view === 'landing' ? (
+      {/* Landing siempre montada, se oculta cuando el mapa está activo */}
+      <div style={{ display: view === 'landing' ? 'block' : 'none' }}>
         <LandingPage onEnterMap={handleEnterMap} />
-      ) : (
-        <MapaApp tipoInicial={tipoInicial} onRegresarLanding={handleRegresarLanding} />
+      </div>
+
+      {/* MapaApp: se monta al primer clic en la landing y ya nunca se destruye */}
+      {mapaListo && (
+        <MapaApp
+          tipoInicial={tipoInicial}
+          visible={view === 'map'}
+          onRegresarLanding={handleRegresarLanding}
+        />
       )}
     </>
   );
