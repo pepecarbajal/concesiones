@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 
 const SUPERFICIE_GUERRERO_HA = 6_364_100;
 const SUPERFICIE_MEXICO_HA   = 196_437_500;
+const SUPERFICIE_CONCESIONADA_GUERRERO_HA = 398_359;
 
 const COLORES = [
   '#3b82f6', '#8b5cf6', '#ec4899', '#f97316',
@@ -89,10 +90,11 @@ const FilaRanking = ({
   numero, nombre, subtitulo, superficie, maxSup,
   totalBase, color, index, animado,
   pctLabel = 'del estado', pctBase = SUPERFICIE_GUERRERO_HA,
+  totalLabel = '% del total concesionado',
 }) => {
   const pctBarra  = (superficie / maxSup) * 100;
-  const pctRef    = ((superficie / pctBase) * 100).toFixed(4);
-  const pctTotal  = ((superficie / totalBase) * 100).toFixed(1);
+  const pctRef    = ((superficie / pctBase) * 100).toFixed(2);
+  const pctTotal  = ((superficie / totalBase) * 100).toFixed(2);
   const hectareas = Number(superficie.toFixed(0)).toLocaleString('es-MX');
 
   return (
@@ -146,7 +148,7 @@ const FilaRanking = ({
             fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 20,
             color: '#64748b', background: '#f8fafc', border: '1px solid #e2e8f0',
           }}>
-            {pctTotal}% del total
+            {pctTotal}% {totalLabel}
           </span>
         </div>
       </div>
@@ -544,12 +546,13 @@ const ModalEstadisticas = ({
               animado={animado}
               pctBase={SUPERFICIE_GUERRERO_HA}
               pctLabel="de Guerrero"
+              totalLabel="del total ANPs"
             />
           ))}
         </div>
         <Nota>
           * "% de Guerrero" calculado sobre la superficie total del estado (6,364,100 ha).
-          "% del total" sobre la suma de superficie de todas las ANPs mostradas.
+          "% del total ANPs" sobre la suma de superficie de todas las ANPs mostradas.
           Fuente: CONANP 2024.
         </Nota>
       </ModalShell>
@@ -584,8 +587,8 @@ const ModalEstadisticas = ({
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 8, padding: '18px 32px 0' }}>
         {[
-          { id: 'empresa',   label: 'Top 10 Empresas' },
-          { id: 'concesion', label: 'Top 10 Concesiones' },
+          { id: 'empresa',   label: 'Top 10 Empresas con mayor superficie concesionada' },
+          { id: 'concesion', label: 'Top 10 Concesiones con mayor superficie' },
         ].map(tab => (
           <button
             key={tab.id}
@@ -621,19 +624,20 @@ const ModalEstadisticas = ({
             subtitulo={vista === 'concesion' ? item.subtitulo : null}
             superficie={item.superficie}
             maxSup={activos.maxSup}
-            totalBase={kpis.superficie}
+            totalBase={SUPERFICIE_CONCESIONADA_GUERRERO_HA}
             color={COLORES[i % COLORES.length]}
             index={i}
             animado={animado}
             pctBase={SUPERFICIE_GUERRERO_HA}
-            pctLabel="del estado"
+            pctLabel="del estado de Guerrero"
+            totalLabel="del total concesionado"
           />
         ))}
       </div>
 
       <Nota>
         * "% del estado" calculado sobre la superficie total de Guerrero (6,364,100 ha).
-        "% del total" sobre la superficie visible con los filtros actuales.
+        "% del total concesionado" sobre la superficie visible con los filtros actuales.
         {vista === 'concesion' && ' La vista por concesión excluye órdenes de exploración.'}
       </Nota>
     </ModalShell>
