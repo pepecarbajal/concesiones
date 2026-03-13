@@ -22,29 +22,6 @@ const AREAS_NATURALES        = areasNaturalesData;
 const MUNICIPIOS_UNICOS = [...new Set(CONCESIONES_PROCESADAS.map(c => c.municipio))].sort();
 const REGIONES_UNICAS   = [...new Set(CONCESIONES_PROCESADAS.map(c => c.region).filter(Boolean))].sort();
 
-// ── Clave para persistencia de sesión ──────────────────────────────────────
-const SESSION_KEY = 'geomin_guerrero_auth';
-
-const guardarSesion = (usuario) => {
-  try {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(usuario));
-  } catch (_) { /* sessionStorage puede no estar disponible */ }
-};
-
-const leerSesion = () => {
-  try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch (_) {
-    return null;
-  }
-};
-
-const limpiarSesion = () => {
-  try { sessionStorage.removeItem(SESSION_KEY); } catch (_) {}
-};
-
-// ── Helpers de filtrado ────────────────────────────────────────────────────
 const filtrarPorAnio = (elemento, yearFilter) => {
   if (!yearFilter || !elemento.fecha_inicio) return true;
   const partes = elemento.fecha_inicio.split('/');
@@ -113,13 +90,10 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding }) {
 
   const filteredConcesiones = useMemo(() => {
     if (tipoElemento === 'areas_naturales') return [];
-
     let datosConcesionesFiltrados = CONCESIONES_PROCESADAS;
     let datosOrdenesFiltrados     = ORDENES_PROCESADAS;
-
     if (tipoElemento === 'concesiones') datosOrdenesFiltrados     = [];
     else if (tipoElemento === 'ordenes') datosConcesionesFiltrados = [];
-
     if (selectedRegion)    datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => c.region === selectedRegion);
     if (selectedMunicipio) datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => c.municipio === selectedMunicipio);
     if (yearFilter)        datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => filtrarPorAnio(c, yearFilter));
@@ -127,7 +101,6 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding }) {
       datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => buscarEnElemento(c, activeSearchTerm));
       datosOrdenesFiltrados     = datosOrdenesFiltrados.filter(o => buscarEnElemento(o, activeSearchTerm));
     }
-
     return [...datosConcesionesFiltrados, ...datosOrdenesFiltrados];
   }, [selectedRegion, selectedMunicipio, activeSearchTerm, yearFilter, tipoElemento]);
 
@@ -163,9 +136,7 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding }) {
   }, []);
 
   const manejarCambiarTipo = useCallback((tipo) => {
-    setTipoElemento(tipo);
-    setSelectedConcesion(null);
-    setCurrentIndex(0);
+    setTipoElemento(tipo); setSelectedConcesion(null); setCurrentIndex(0);
     if (tipo !== 'areas_naturales') setAnpSeleccionada(null);
   }, []);
 
@@ -217,28 +188,18 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding }) {
   return (
     <div className="app-container" style={{ display: visible ? 'block' : 'none' }}>
       <header className="app-header">
-        <button
-          className="btn-regresar"
-          onClick={onRegresarLanding}
-          title="Regresar al inicio"
-        >
+        <button className="btn-regresar" onClick={onRegresarLanding} title="Regresar al inicio">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5M12 5l-7 7 7 7"/>
           </svg>
           <span className="btn-regresar-label">Inicio</span>
         </button>
-
         <div className="app-header-brand">
           <h1 className="app-header-title">Información Minera del Estado de Guerrero</h1>
         </div>
       </header>
 
-      <BotonesMovil
-        panelVisible={panelVisible}
-        filtersVisible={filtersVisible}
-        onTogglePanel={alternarPanel}
-        onToggleFiltros={alternarFiltros}
-      />
+      <BotonesMovil panelVisible={panelVisible} filtersVisible={filtersVisible} onTogglePanel={alternarPanel} onToggleFiltros={alternarFiltros} />
 
       <Mapa
         elementosFiltrados={filteredConcesiones}
@@ -254,64 +215,39 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding }) {
       />
 
       <BarraFiltros
-        visible={filtersVisible}
-        panelVisible={panelVisible}
-        estadoSeleccionado={selectedEstado}
-        regionSeleccionada={selectedRegion}
-        municipioSeleccionado={selectedMunicipio}
-        filtroAnio={yearFilter}
-        terminoBusqueda={searchTerm}
-        regionesDisponibles={REGIONES_UNICAS}
-        municipiosDisponibles={obtenerMunicipiosFiltrados}
-        aniosDisponibles={obtenerAniosUnicos}
-        onCambiarEstado={setSelectedEstado}
-        onCambiarRegion={manejarCambioRegion}
-        onCambiarMunicipio={manejarCambioMunicipio}
-        onCambiarAnio={setYearFilter}
-        onCambiarBusqueda={manejarBusqueda}
-        onActivarBusqueda={manejarActivarBusqueda}
-        onLimpiarBusqueda={manejarLimpiarBusqueda}
-        elementosFiltrados={filteredConcesiones}
+        visible={filtersVisible} panelVisible={panelVisible}
+        estadoSeleccionado={selectedEstado} regionSeleccionada={selectedRegion}
+        municipioSeleccionado={selectedMunicipio} filtroAnio={yearFilter}
+        terminoBusqueda={searchTerm} regionesDisponibles={REGIONES_UNICAS}
+        municipiosDisponibles={obtenerMunicipiosFiltrados} aniosDisponibles={obtenerAniosUnicos}
+        onCambiarEstado={setSelectedEstado} onCambiarRegion={manejarCambioRegion}
+        onCambiarMunicipio={manejarCambioMunicipio} onCambiarAnio={setYearFilter}
+        onCambiarBusqueda={manejarBusqueda} onActivarBusqueda={manejarActivarBusqueda}
+        onLimpiarBusqueda={manejarLimpiarBusqueda} elementosFiltrados={filteredConcesiones}
       />
 
       <PanelLateral
-        visible={panelVisible}
-        elementoSeleccionado={selectedConcesion}
-        elementosFiltrados={filteredConcesiones}
-        indiceActual={currentIndex}
-        esMovil={isMobile}
-        tipoElemento={tipoElemento}
-        onCambiarTipo={manejarCambiarTipo}
-        totalConcesiones={CONCESIONES_PROCESADAS.length}
-        totalOrdenes={ORDENES_PROCESADAS.length}
-        anps={AREAS_NATURALES}
-        totalANPs={AREAS_NATURALES.length}
+        visible={panelVisible} elementoSeleccionado={selectedConcesion}
+        elementosFiltrados={filteredConcesiones} indiceActual={currentIndex}
+        esMovil={isMobile} tipoElemento={tipoElemento} onCambiarTipo={manejarCambiarTipo}
+        totalConcesiones={CONCESIONES_PROCESADAS.length} totalOrdenes={ORDENES_PROCESADAS.length}
+        anps={AREAS_NATURALES} totalANPs={AREAS_NATURALES.length}
         anpSeleccionadaExterna={anpSeleccionada}
-        onSeleccionarElemento={manejarSeleccionElemento}
-        onSeleccionarANP={manejarSeleccionANP}
+        onSeleccionarElemento={manejarSeleccionElemento} onSeleccionarANP={manejarSeleccionANP}
         onDeseleccionar={() => setSelectedConcesion(null)}
-        onNavegarAnterior={navegarAnterior}
-        onNavegarSiguiente={navegarSiguiente}
+        onNavegarAnterior={navegarAnterior} onNavegarSiguiente={navegarSiguiente}
         onMostrarEstadisticas={() => setModalEstadisticasVisible(true)}
       />
 
       {modalEstadisticasVisible && (
         <ModalEstadisticas
-          elementosFiltrados={
-            tipoElemento === 'areas_naturales' ? [] : filteredConcesiones
-          }
+          elementosFiltrados={tipoElemento === 'areas_naturales' ? [] : filteredConcesiones}
           anps={tipoElemento === 'areas_naturales' ? AREAS_NATURALES : []}
-          tipoElemento={tipoElemento}
-          regionSeleccionada={selectedRegion}
-          municipioSeleccionado={selectedMunicipio}
-          filtroAnio={yearFilter}
+          tipoElemento={tipoElemento} regionSeleccionada={selectedRegion}
+          municipioSeleccionado={selectedMunicipio} filtroAnio={yearFilter}
           onCerrar={() => setModalEstadisticasVisible(false)}
-          totalConcesionesGuerrero={
-            CONCESIONES_PROCESADAS.reduce((s, c) => s + parseFloat(c.superficie || 0), 0)
-          }
-          totalOrdenesGuerrero={
-            ORDENES_PROCESADAS.reduce((s, o) => s + parseFloat(o.superficie || 0), 0)
-          }
+          totalConcesionesGuerrero={CONCESIONES_PROCESADAS.reduce((s, c) => s + parseFloat(c.superficie || 0), 0)}
+          totalOrdenesGuerrero={ORDENES_PROCESADAS.reduce((s, o) => s + parseFloat(o.superficie || 0), 0)}
         />
       )}
     </div>
@@ -320,138 +256,72 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding }) {
 
 // ── Root App ──────────────────────────────────────────────────────────────────
 function App() {
-  // ── Estado de autenticación ──
-  // 'login'   → pantalla de contraseña
-  // 'landing' → landing page con los 3 botones
-  // 'map'     → el mapa
-  const [view, setView]               = useState(() => leerSesion() ? 'landing' : 'login');
-  const [usuario, setUsuario]         = useState(() => leerSesion());
+  // La sesión la maneja el servidor con cookie HttpOnly.
+  // El frontend solo guarda en qué "pantalla" está.
+  const [view, setView]               = useState('login');
   const [tipoInicial, setTipoInicial] = useState('concesiones');
   const [transitioning, setTransitioning] = useState(false);
   const [mapaListo, setMapaListo]     = useState(false);
 
-  // ── Login exitoso ──
-  const handleLoginExitoso = useCallback((usuarioData) => {
-    guardarSesion(usuarioData);
-    setUsuario(usuarioData);
+  const handleLoginExitoso = useCallback(() => {
     setTransitioning(true);
-    setTimeout(() => {
-      setView('landing');
-      setTransitioning(false);
-    }, 400);
+    setTimeout(() => { setView('landing'); setTransitioning(false); }, 400);
   }, []);
 
-  // ── Entrar al mapa ──
   const handleEnterMap = useCallback((tipo) => {
     setTipoInicial(tipo || 'concesiones');
     setTransitioning(true);
-    setTimeout(() => {
-      setMapaListo(true);
-      setView('map');
-      setTransitioning(false);
-    }, 500);
+    setTimeout(() => { setMapaListo(true); setView('map'); setTransitioning(false); }, 500);
   }, []);
 
-  // ── Regresar a landing ──
   const handleRegresarLanding = useCallback(() => {
     setTransitioning(true);
     setTimeout(() => { setView('landing'); setTransitioning(false); }, 500);
-  }, []);
-
-  // ── Cerrar sesión (opcional, expuesto para uso futuro) ──
-  // Para cerrar sesión desde cualquier parte: importa este handler o
-  // implementa un evento global.
-  const handleLogout = useCallback(() => {
-    limpiarSesion();
-    setUsuario(null);
-    setTransitioning(true);
-    setTimeout(() => {
-      setView('login');
-      setMapaListo(false);
-      setTransitioning(false);
-    }, 400);
   }, []);
 
   return (
     <>
       <style>{`
         .view-transition {
-          position: fixed; inset: 0;
-          background: #08070a;
+          position: fixed; inset: 0; background: #08070a;
           z-index: 9999; pointer-events: none;
           opacity: 0; transition: opacity 0.5s ease;
         }
         .view-transition.active { opacity: 1; }
-
         .btn-regresar {
           display: flex; align-items: center; gap: 6px;
-          padding: 7px 14px;
-          background: rgba(255,255,255,0.12);
-          border: 1px solid rgba(255,255,255,0.25);
-          border-radius: 9px;
-          color: white;
-          font-size: 13px; font-weight: 600;
-          font-family: inherit;
-          cursor: pointer;
+          padding: 7px 14px; background: rgba(255,255,255,0.12);
+          border: 1px solid rgba(255,255,255,0.25); border-radius: 9px;
+          color: white; font-size: 13px; font-weight: 600; font-family: inherit;
+          cursor: pointer; white-space: nowrap; flex-shrink: 0;
           transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-          white-space: nowrap;
-          flex-shrink: 0;
         }
-
-        .btn-regresar:hover {
-          background: rgba(255,255,255,0.22);
-          border-color: rgba(255,255,255,0.45);
-          transform: translateX(-2px);
-        }
-
-        .btn-regresar svg {
-          flex-shrink: 0;
-          transition: transform 0.2s ease;
-        }
-
-        .btn-regresar:hover svg {
-          transform: translateX(-2px);
-        }
-
+        .btn-regresar:hover { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.45); transform: translateX(-2px); }
+        .btn-regresar svg { flex-shrink: 0; transition: transform 0.2s ease; }
+        .btn-regresar:hover svg { transform: translateX(-2px); }
         @media (max-width: 768px) {
           .btn-regresar-label { display: none; }
           .btn-regresar { padding: 7px 10px; }
         }
-
         .panel-btn-estadisticas {
           display: flex; align-items: center; justify-content: center; gap: 7px;
-          margin-top: 14px;
-          padding: 8px 16px;
-          width: 100%;
-          background: rgba(255,255,255,0.14);
-          border: 1px solid rgba(255,255,255,0.25);
-          border-radius: 9px;
-          color: white;
-          font-size: 12px; font-weight: 600;
-          font-family: inherit;
-          cursor: pointer;
+          margin-top: 14px; padding: 8px 16px; width: 100%;
+          background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.25);
+          border-radius: 9px; color: white; font-size: 12px; font-weight: 600;
+          font-family: inherit; cursor: pointer;
           transition: background 0.2s ease, border-color 0.2s ease;
         }
-
-        .panel-btn-estadisticas:hover {
-          background: rgba(255,255,255,0.24);
-          border-color: rgba(255,255,255,0.4);
-        }
+        .panel-btn-estadisticas:hover { background: rgba(255,255,255,0.24); border-color: rgba(255,255,255,0.4); }
       `}</style>
 
       <div className={`view-transition ${transitioning ? 'active' : ''}`} />
 
-      {/* ── Pantalla de login ── */}
-      {view === 'login' && (
-        <LoginPage onLoginExitoso={handleLoginExitoso} />
-      )}
+      {view === 'login' && <LoginPage onLoginExitoso={handleLoginExitoso} />}
 
-      {/* ── Landing: visible solo cuando estamos autenticados y en 'landing' ── */}
       <div style={{ display: view === 'landing' ? 'block' : 'none' }}>
         <LandingPage onEnterMap={handleEnterMap} />
       </div>
 
-      {/* ── Mapa: se monta al primer clic y ya no se destruye ── */}
       {mapaListo && (
         <MapaApp
           tipoInicial={tipoInicial}
