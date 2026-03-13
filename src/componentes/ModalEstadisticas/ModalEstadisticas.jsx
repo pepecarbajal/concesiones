@@ -85,7 +85,6 @@ const LineChart = ({ data }) => {
   );
 };
 
-// ── Fila de ranking genérica ──────────────────────────────────────────────────
 const FilaRanking = ({
   numero, nombre, subtitulo, superficie, maxSup,
   totalBase, color, index, animado,
@@ -382,7 +381,6 @@ const ModalEstadisticas = ({
     };
   }, [elementosFiltrados]);
 
-  // ── KPIs ANP ──
   const kpisANP = useMemo(() => {
     if (!anps?.length) return null;
     const sup = anps.reduce((s, a) => s + parseFloat(a.SUPERFICIE || 0), 0);
@@ -397,7 +395,6 @@ const ModalEstadisticas = ({
     };
   }, [anps]);
 
-  // ── Top empresas ──
   const datosEmpresa = useMemo(() => {
     const mapa = new Map();
     elementosFiltrados.forEach(e => {
@@ -416,7 +413,6 @@ const ModalEstadisticas = ({
     return { arr, maxSup: arr[0]?.superficie || 1 };
   }, [elementosFiltrados]);
 
-  // ── Top concesiones ──
   const datosConcesion = useMemo(() => {
     const arr = elementosFiltrados
       .filter(e => e.tipo !== 'orden_exploracion')
@@ -431,7 +427,6 @@ const ModalEstadisticas = ({
     return { arr, maxSup: arr[0]?.superficie || 1 };
   }, [elementosFiltrados]);
 
-  // ── Órdenes ──
   const datosOrdenes = useMemo(() => {
     const arr = elementosFiltrados
       .filter(e => e.tipo === 'orden_exploracion')
@@ -441,7 +436,6 @@ const ModalEstadisticas = ({
     return { arr, maxSup: arr[0]?.superficieNum || 1 };
   }, [elementosFiltrados]);
 
-  // ── ANPs ──
   const datosANP = useMemo(() => {
     if (!anps) return { arr: [], maxSup: 1 };
     const arr = [...anps]
@@ -451,7 +445,7 @@ const ModalEstadisticas = ({
     return { arr, maxSup: arr[0]?.superficieNum || 1 };
   }, [anps]);
 
-  // ── Línea por año (siempre por año, nunca por década) ──
+
   const datosLinea = useMemo(() => {
     const conteo = {};
     elementosFiltrados
@@ -473,9 +467,6 @@ const ModalEstadisticas = ({
 
   const activos = vista === 'empresa' ? datosEmpresa : datosConcesion;
 
-  // ════════════════════════════════════════════════════════════════════════════
-  // VISTA: ÓRDENES
-  // ════════════════════════════════════════════════════════════════════════════
   if (tipoElemento === 'ordenes') {
     const supTotal = datosOrdenes.arr.reduce((s, o) => s + o.superficieNum, 0);
     return (
@@ -510,9 +501,6 @@ const ModalEstadisticas = ({
     );
   }
 
-  // ════════════════════════════════════════════════════════════════════════════
-  // VISTA: ÁREAS NATURALES PROTEGIDAS
-  // ════════════════════════════════════════════════════════════════════════════
   if (tipoElemento === 'areas_naturales') {
     return (
       <ModalShell onCerrar={onCerrar} contexto={contexto} titulo="Estadísticas · Áreas Naturales Protegidas">
@@ -559,9 +547,6 @@ const ModalEstadisticas = ({
     );
   }
 
-  // ════════════════════════════════════════════════════════════════════════════
-  // VISTA: CONCESIONES (default)
-  // ════════════════════════════════════════════════════════════════════════════
   return (
     <ModalShell onCerrar={onCerrar} contexto={contexto} titulo="Estadísticas Mineras">
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', borderBottom: '1px solid #f1f5f9' }}>

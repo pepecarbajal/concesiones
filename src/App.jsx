@@ -11,6 +11,7 @@ import PanelLateral from './componentes/PanelLateral/PanelLateral';
 import BotonesMovil from './componentes/BotonesMovil/BotonesMovil';
 import ModalEstadisticas from './componentes/ModalEstadisticas/ModalEstadisticas';
 import LandingPage from './componentes/LandingPage/LandingPage';
+import LoginPage from './componentes/LoginPage/LoginPage';
 
 import { procesarConcesiones, procesarOrdenesExploracion } from './utilidades/procesadorDatos';
 
@@ -21,6 +22,29 @@ const AREAS_NATURALES        = areasNaturalesData;
 const MUNICIPIOS_UNICOS = [...new Set(CONCESIONES_PROCESADAS.map(c => c.municipio))].sort();
 const REGIONES_UNICAS   = [...new Set(CONCESIONES_PROCESADAS.map(c => c.region).filter(Boolean))].sort();
 
+// ── Clave para persistencia de sesión ──────────────────────────────────────
+const SESSION_KEY = 'geomin_guerrero_auth';
+
+const guardarSesion = (usuario) => {
+  try {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(usuario));
+  } catch (_) { /* sessionStorage puede no estar disponible */ }
+};
+
+const leerSesion = () => {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (_) {
+    return null;
+  }
+};
+
+const limpiarSesion = () => {
+  try { sessionStorage.removeItem(SESSION_KEY); } catch (_) {}
+};
+
+// ── Helpers de filtrado ────────────────────────────────────────────────────
 const filtrarPorAnio = (elemento, yearFilter) => {
   if (!yearFilter || !elemento.fecha_inicio) return true;
   const partes = elemento.fecha_inicio.split('/');
@@ -296,24 +320,56 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding }) {
 
 // ── Root App ──────────────────────────────────────────────────────────────────
 function App() {
-  const [view, setView]               = useState('landing');
+  // ── Estado de autenticación ──
+  // 'login'   → pantalla de contraseña
+  // 'landing' → landing page con los 3 botones
+  // 'map'     → el mapa
+  const [view, setView]               = useState(() => leerSesion() ? 'landing' : 'login');
+  const [usuario, setUsuario]         = useState(() => leerSesion());
   const [tipoInicial, setTipoInicial] = useState('concesiones');
   const [transitioning, setTransitioning] = useState(false);
   const [mapaListo, setMapaListo]     = useState(false);
 
+  // ── Login exitoso ──
+  const handleLoginExitoso = useCallback((usuarioData) => {
+    guardarSesion(usuarioData);
+    setUsuario(usuarioData);
+    setTransitioning(true);
+    setTimeout(() => {
+      setView('landing');
+      setTransitioning(false);
+    }, 400);
+  }, []);
+
+  // ── Entrar al mapa ──
   const handleEnterMap = useCallback((tipo) => {
     setTipoInicial(tipo || 'concesiones');
     setTransitioning(true);
     setTimeout(() => {
-      setMapaListo(true); // asegura que MapaApp se haya montado
+      setMapaListo(true);
       setView('map');
       setTransitioning(false);
     }, 500);
   }, []);
 
+  // ── Regresar a landing ──
   const handleRegresarLanding = useCallback(() => {
     setTransitioning(true);
     setTimeout(() => { setView('landing'); setTransitioning(false); }, 500);
+  }, []);
+
+  // ── Cerrar sesión (opcional, expuesto para uso futuro) ──
+  // Para cerrar sesión desde cualquier parte: importa este handler o
+  // implementa un evento global.
+  const handleLogout = useCallback(() => {
+    limpiarSesion();
+    setUsuario(null);
+    setTransitioning(true);
+    setTimeout(() => {
+      setView('login');
+      setMapaListo(false);
+      setTransitioning(false);
+    }, 400);
   }, []);
 
   return (
@@ -385,12 +441,17 @@ function App() {
 
       <div className={`view-transition ${transitioning ? 'active' : ''}`} />
 
-      {/* Landing siempre montada, se oculta cuando el mapa está activo */}
+      {/* ── Pantalla de login ── */}
+      {view === 'login' && (
+        <LoginPage onLoginExitoso={handleLoginExitoso} />
+      )}
+
+      {/* ── Landing: visible solo cuando estamos autenticados y en 'landing' ── */}
       <div style={{ display: view === 'landing' ? 'block' : 'none' }}>
         <LandingPage onEnterMap={handleEnterMap} />
       </div>
 
-      {/* MapaApp: se monta al primer clic en la landing y ya nunca se destruye */}
+      {/* ── Mapa: se monta al primer clic y ya no se destruye ── */}
       {mapaListo && (
         <MapaApp
           tipoInicial={tipoInicial}
