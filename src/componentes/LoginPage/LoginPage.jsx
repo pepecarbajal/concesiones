@@ -98,7 +98,7 @@ export default function LoginPage({ onLoginExitoso }) {
         @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Inter:wght@400;500;600;700&display=swap');
         .lp-login-overlay { position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;animation:lpFadeIn 0.5s ease; }
         @keyframes lpFadeIn{from{opacity:0}to{opacity:1}}
-        .lp-login-bg { position:absolute;inset:0;background-image:url('https://tse1.mm.bing.net/th/id/OIP.UJgEYHR6WBDHU--StGGH1wHaEK?rs=1&pid=ImgDetMain&o=7&rm=32');background-size:cover;background-position:center;filter:brightness(0.28) saturate(0.8); }
+        .lp-login-bg { position:absolute;inset:0;background-image:url('./ComplejoMineroMorelosMML.webp');background-size:cover;background-position:center; saturate(0.8); }
         .lp-login-bg-overlay { position:absolute;inset:0;background:linear-gradient(to bottom,rgba(8,7,15,0.3) 0%,rgba(8,7,15,0.2) 50%,rgba(8,7,15,0.55) 100%); }
         .lp-login-card { position:relative;z-index:1;width:100%;max-width:420px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:44px 40px 40px;backdrop-filter:blur(24px);box-shadow:0 32px 80px rgba(0,0,0,0.5),0 0 0 1px rgba(255,255,255,0.06) inset;animation:lpSlideUp 0.55s cubic-bezier(0.34,1.2,0.64,1); }
         @keyframes lpSlideUp{from{opacity:0;transform:translateY(28px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}

@@ -56,7 +56,6 @@ export default function LandingPage({ onEnterMap }) {
           position:absolute; inset:0;
           background-image: url('./ComplejoMineroMorelosMML.webp');
           background-size:cover; background-position:center;
-          filter:brightness(0.35);
         }
 
         .lp-overlay {
