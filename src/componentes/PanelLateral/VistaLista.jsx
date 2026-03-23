@@ -9,7 +9,7 @@ const CAT_INFO = {
   'MN':   { nombre: 'Monumento Natural',                color: '#9333ea' },
   'AP':   { nombre: 'Área de Protección',               color: '#d97706' },
   'SANT': { nombre: 'Santuario',                        color: '#0d9488' },
-  'SB':   { nombre: 'Santuario',                        color: '#0d9488' },
+  'APFF':   { nombre: 'Área de Protección de Flora y Fauna',                        color: '#0d9488' },
   'FL':   { nombre: 'Área de Protección Flora y Fauna', color: '#db2777' },
 };
 
