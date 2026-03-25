@@ -218,7 +218,6 @@ export default function LoginPage({ onLoginExitoso }) {
             </form>
           )}
 
-          <div className="lp-login-footer">Sistema de Información Geoespacial Minera · Guerrero</div>
         </div>
       </div>
     </>

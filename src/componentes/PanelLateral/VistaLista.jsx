@@ -9,26 +9,20 @@ const CAT_INFO = {
   'MN':   { nombre: 'Monumento Natural',                color: '#9333ea' },
   'AP':   { nombre: 'Área de Protección',               color: '#d97706' },
   'SANT': { nombre: 'Santuario',                        color: '#0d9488' },
-  'APFF':   { nombre: 'Área de Protección de Flora y Fauna',                        color: '#0d9488' },
+  'APFF': { nombre: 'Área de Protección de Flora y Fauna', color: '#0d9488' },
   'FL':   { nombre: 'Área de Protección Flora y Fauna', color: '#db2777' },
 };
 
-/**
- * Convierte el ID_ANP a nombre de archivo
- * Ej: "6.1.03.137" → "6_1_03_137"
- */
 const idAnpANombreArchivo = (idAnp) => {
   if (!idAnp) return null;
   return idAnp.replace(/\./g, '_');
 };
 
-// ── Botón de descarga PDF pequeño (para la lista) ────────────────────────────
-const BtnPDFListaItem = memo(({ idAnp, nombreAnp, onClick }) => {
+// ── Botón PDF pequeño para la lista de ANP ───────────────────────────────────
+const BtnPDFListaItem = memo(({ idAnp, nombreAnp }) => {
   const nombreArchivo = idAnpANombreArchivo(idAnp);
   if (!nombreArchivo) return null;
-
   const rutaPDF = `/pdfs-anp/${nombreArchivo}.pdf`;
-
   return (
     <a
       href={rutaPDF}
@@ -37,7 +31,7 @@ const BtnPDFListaItem = memo(({ idAnp, nombreAnp, onClick }) => {
       download={`ANP_${nombreArchivo}.pdf`}
       title={`Descargar PDF de ${nombreAnp}`}
       className="anp-lista-pdf-btn"
-      onClick={(e) => e.stopPropagation()} // evita seleccionar el item al hacer clic en el botón
+      onClick={(e) => e.stopPropagation()}
     >
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -65,50 +59,28 @@ const ListaANP = memo(({ anps, onSeleccionar }) => {
     <>
       <style>{`
         .anp-lista-pdf-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
+          display: inline-flex; align-items: center; gap: 4px;
           padding: 4px 10px;
           background: linear-gradient(135deg, #166534 0%, #15803d 100%);
-          color: white;
-          border-radius: 6px;
-          font-size: 11px;
-          font-weight: 700;
-          text-decoration: none;
-          letter-spacing: 0.03em;
+          color: white; border-radius: 6px; font-size: 11px; font-weight: 700;
+          text-decoration: none; letter-spacing: 0.03em;
           transition: all 0.2s ease;
           box-shadow: 0 2px 6px rgba(21, 128, 61, 0.25);
-          flex-shrink: 0;
-          white-space: nowrap;
+          flex-shrink: 0; white-space: nowrap;
         }
-
         .anp-lista-pdf-btn:hover {
           background: linear-gradient(135deg, #14532d 0%, #166534 100%);
           box-shadow: 0 3px 10px rgba(21, 128, 61, 0.4);
           transform: translateY(-1px);
         }
-
-        .anp-lista-pdf-btn:active {
-          transform: translateY(0);
-        }
-
-        /* Row que contiene detalles + botón PDF */
         .anp-item-footer {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 8px;
-          margin-top: 6px;
+          display: flex; align-items: center; justify-content: space-between;
+          gap: 8px; margin-top: 6px;
         }
-
         .anp-item-details {
-          font-size: 11px;
-          color: #9CA3AF;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          flex-wrap: wrap;
-          min-width: 0;
+          font-size: 11px; color: #9CA3AF;
+          display: flex; align-items: center; gap: 6px;
+          flex-wrap: wrap; min-width: 0;
         }
       `}</style>
 
@@ -121,7 +93,6 @@ const ListaANP = memo(({ anps, onSeleccionar }) => {
 
           return (
             <div key={anp.ID_ANP} className="concesion-item" onClick={() => onSeleccionar(anp)}>
-              {/* Nombre */}
               <div className="concesion-name">
                 <span
                   className="concesion-status-dot"
@@ -129,13 +100,9 @@ const ListaANP = memo(({ anps, onSeleccionar }) => {
                 />
                 {anp.NOMBRE}
               </div>
-
-              {/* Categoría */}
               <div className="concesion-titular" style={{ color: cat.color, fontWeight: 600, fontSize: '11px' }}>
                 {cat.nombre}
               </div>
-
-              {/* Footer: detalles + botón PDF */}
               <div className="anp-item-footer">
                 <div className="anp-item-details">
                   <span>{anp.MUNICIPIOS?.split(',')[0]?.trim() || '—'}</span>
@@ -150,8 +117,6 @@ const ListaANP = memo(({ anps, onSeleccionar }) => {
                     {anp.CAT_MANEJO}
                   </span>
                 </div>
-
-                {/* Botón de descarga PDF */}
                 <BtnPDFListaItem idAnp={anp.ID_ANP} nombreAnp={anp.NOMBRE} />
               </div>
             </div>
@@ -192,6 +157,25 @@ const EstadisticasANP = memo(({ anps }) => {
 });
 EstadisticasANP.displayName = 'EstadisticasANP';
 
+// ── Configuración de header por tipo ─────────────────────────────────────────
+const TIPO_HEADER = {
+  concesiones:     {
+    titulo: 'Concesiones Mineras',
+    subtitulo: 'Estado de Guerrero',
+    gradiente: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  },
+  ordenes:         {
+    titulo: 'Órdenes de Exploración',
+    subtitulo: 'Estado de Guerrero',
+    gradiente: 'linear-gradient(135deg, #3b6fd4 0%, #5b9cf6 100%)',
+  },
+  areas_naturales: {
+    titulo: 'Áreas Naturales Protegidas',
+    subtitulo: 'Estado de Guerrero',
+    gradiente: 'linear-gradient(135deg, #166534 0%, #15803d 100%)',
+  },
+};
+
 // ── Componente principal ──────────────────────────────────────────────────────
 const VistaLista = memo(({
   elementos,
@@ -200,7 +184,7 @@ const VistaLista = memo(({
   onSeleccionarANP,
   esMovil,
   tipoElemento,
-  onCambiarTipo,
+  onCambiarTipo,      // se mantiene por compatibilidad pero no se usa para renderizar botones
   totalConcesiones,
   totalOrdenes,
   totalANPs,
@@ -223,24 +207,19 @@ const VistaLista = memo(({
 
   const hayMasElementos      = elementos.length > LIMITES_VISUALIZACION.maximoElementosLista;
   const manejarClickElemento = useCallback((el) => onSeleccionarElemento(el), [onSeleccionarElemento]);
-  const esANP = tipoElemento === 'areas_naturales';
+  const esANP                = tipoElemento === 'areas_naturales';
 
-  const TIPO_HEADER = {
-    concesiones:     { titulo: 'Concesiones Mineras',        color: '#e8a838', gradiente: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
-    ordenes:         { titulo: 'Órdenes de Exploración',     color: '#5b9cf6', gradiente: 'linear-gradient(135deg, #3b6fd4 0%, #5b9cf6 100%)' },
-    areas_naturales: { titulo: 'Áreas Naturales Protegidas', color: '#4ade80', gradiente: 'linear-gradient(135deg, #166534 0%, #15803d 100%)' },
-  };
   const headerInfo = TIPO_HEADER[tipoElemento] || TIPO_HEADER.concesiones;
 
   return (
     <div className="side-panel-content">
-      {/* ── Header ── */}
+      {/* ── Header: solo título + botón de estadísticas, sin selector de tipo ── */}
       <div
         className="panel-header panel-header-main"
         style={{ background: headerInfo.gradiente }}
       >
         <h2 className="panel-title">{headerInfo.titulo}</h2>
-        <p className="panel-subtitle">Estado de Guerrero</p>
+        <p className="panel-subtitle">{headerInfo.subtitulo}</p>
 
         <button
           onClick={onMostrarEstadisticas}
@@ -250,8 +229,8 @@ const VistaLista = memo(({
             stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="20" x2="18" y2="10"/>
             <line x1="12" y1="20" x2="12" y2="4"/>
-            <line x1="6" y1="20" x2="6" y2="14"/>
-            <line x1="2" y1="20" x2="22" y2="20"/>
+            <line x1="6"  y1="20" x2="6"  y2="14"/>
+            <line x1="2"  y1="20" x2="22" y2="20"/>
           </svg>
           Estadísticas
         </button>

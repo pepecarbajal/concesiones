@@ -62,6 +62,9 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding }) {
   const [modalEstadisticasVisible, setModalEstadisticasVisible] = useState(false);
   const [anpSeleccionada, setAnpSeleccionada]     = useState(null);
 
+  // Los filtros solo aplican (y deben mostrarse) en la vista de concesiones
+  const mostrarFiltros = tipoElemento === 'concesiones' && filtersVisible;
+
   useEffect(() => {
     if (tipoInicial) setTipoElemento(tipoInicial);
   }, [tipoInicial]);
@@ -94,9 +97,12 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding }) {
     let datosOrdenesFiltrados     = ORDENES_PROCESADAS;
     if (tipoElemento === 'concesiones') datosOrdenesFiltrados     = [];
     else if (tipoElemento === 'ordenes') datosConcesionesFiltrados = [];
-    if (selectedRegion)    datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => c.region === selectedRegion);
-    if (selectedMunicipio) datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => c.municipio === selectedMunicipio);
-    if (yearFilter)        datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => filtrarPorAnio(c, yearFilter));
+    // Filtros de región / municipio / año solo aplican a concesiones
+    if (tipoElemento === 'concesiones') {
+      if (selectedRegion)    datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => c.region === selectedRegion);
+      if (selectedMunicipio) datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => c.municipio === selectedMunicipio);
+      if (yearFilter)        datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => filtrarPorAnio(c, yearFilter));
+    }
     if (activeSearchTerm.length > 2) {
       datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => buscarEnElemento(c, activeSearchTerm));
       datosOrdenesFiltrados     = datosOrdenesFiltrados.filter(o => buscarEnElemento(o, activeSearchTerm));
@@ -138,6 +144,9 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding }) {
   const manejarCambiarTipo = useCallback((tipo) => {
     setTipoElemento(tipo); setSelectedConcesion(null); setCurrentIndex(0);
     if (tipo !== 'areas_naturales') setAnpSeleccionada(null);
+    // Limpiar filtros al cambiar de sección
+    setSelectedRegion(''); setSelectedMunicipio(''); setYearFilter('');
+    setSearchTerm(''); setActiveSearchTerm('');
   }, []);
 
   const manejarSeleccionElemento = useCallback((elemento) => {
@@ -160,8 +169,10 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding }) {
   }, [isMobile]);
 
   const alternarFiltros = useCallback(() => {
+    // El botón de filtros solo actúa en concesiones
+    if (tipoElemento !== 'concesiones') return;
     setFiltersVisible(prev => { const n = !prev; if (n && isMobile) setPanelVisible(false); return n; });
-  }, [isMobile]);
+  }, [isMobile, tipoElemento]);
 
   const obtenerMunicipiosFiltrados = useMemo(() => {
     if (!selectedRegion) return MUNICIPIOS_UNICOS;
@@ -199,7 +210,14 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding }) {
         </div>
       </header>
 
-      <BotonesMovil panelVisible={panelVisible} filtersVisible={filtersVisible} onTogglePanel={alternarPanel} onToggleFiltros={alternarFiltros} />
+      {/* En móvil, el botón de filtros solo aparece en la vista de concesiones */}
+      <BotonesMovil
+        panelVisible={panelVisible}
+        filtersVisible={filtersVisible}
+        mostrarBtnFiltros={tipoElemento === 'concesiones'}
+        onTogglePanel={alternarPanel}
+        onToggleFiltros={alternarFiltros}
+      />
 
       <Mapa
         elementosFiltrados={filteredConcesiones}
@@ -214,28 +232,46 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding }) {
         onSeleccionarANP={manejarSeleccionANP}
       />
 
+      {/* Barra de filtros: solo se renderiza y muestra para concesiones */}
       <BarraFiltros
-        visible={filtersVisible} panelVisible={panelVisible}
-        estadoSeleccionado={selectedEstado} regionSeleccionada={selectedRegion}
-        municipioSeleccionado={selectedMunicipio} filtroAnio={yearFilter}
-        terminoBusqueda={searchTerm} regionesDisponibles={REGIONES_UNICAS}
-        municipiosDisponibles={obtenerMunicipiosFiltrados} aniosDisponibles={obtenerAniosUnicos}
-        onCambiarEstado={setSelectedEstado} onCambiarRegion={manejarCambioRegion}
-        onCambiarMunicipio={manejarCambioMunicipio} onCambiarAnio={setYearFilter}
-        onCambiarBusqueda={manejarBusqueda} onActivarBusqueda={manejarActivarBusqueda}
-        onLimpiarBusqueda={manejarLimpiarBusqueda} elementosFiltrados={filteredConcesiones}
+        visible={mostrarFiltros}
+        panelVisible={panelVisible}
+        estadoSeleccionado={selectedEstado}
+        regionSeleccionada={selectedRegion}
+        municipioSeleccionado={selectedMunicipio}
+        filtroAnio={yearFilter}
+        terminoBusqueda={searchTerm}
+        regionesDisponibles={REGIONES_UNICAS}
+        municipiosDisponibles={obtenerMunicipiosFiltrados}
+        aniosDisponibles={obtenerAniosUnicos}
+        onCambiarEstado={setSelectedEstado}
+        onCambiarRegion={manejarCambioRegion}
+        onCambiarMunicipio={manejarCambioMunicipio}
+        onCambiarAnio={setYearFilter}
+        onCambiarBusqueda={manejarBusqueda}
+        onActivarBusqueda={manejarActivarBusqueda}
+        onLimpiarBusqueda={manejarLimpiarBusqueda}
+        elementosFiltrados={filteredConcesiones}
       />
 
       <PanelLateral
-        visible={panelVisible} elementoSeleccionado={selectedConcesion}
-        elementosFiltrados={filteredConcesiones} indiceActual={currentIndex}
-        esMovil={isMobile} tipoElemento={tipoElemento} onCambiarTipo={manejarCambiarTipo}
-        totalConcesiones={CONCESIONES_PROCESADAS.length} totalOrdenes={ORDENES_PROCESADAS.length}
-        anps={AREAS_NATURALES} totalANPs={AREAS_NATURALES.length}
+        visible={panelVisible}
+        elementoSeleccionado={selectedConcesion}
+        elementosFiltrados={filteredConcesiones}
+        indiceActual={currentIndex}
+        esMovil={isMobile}
+        tipoElemento={tipoElemento}
+        onCambiarTipo={manejarCambiarTipo}
+        totalConcesiones={CONCESIONES_PROCESADAS.length}
+        totalOrdenes={ORDENES_PROCESADAS.length}
+        anps={AREAS_NATURALES}
+        totalANPs={AREAS_NATURALES.length}
         anpSeleccionadaExterna={anpSeleccionada}
-        onSeleccionarElemento={manejarSeleccionElemento} onSeleccionarANP={manejarSeleccionANP}
+        onSeleccionarElemento={manejarSeleccionElemento}
+        onSeleccionarANP={manejarSeleccionANP}
         onDeseleccionar={() => setSelectedConcesion(null)}
-        onNavegarAnterior={navegarAnterior} onNavegarSiguiente={navegarSiguiente}
+        onNavegarAnterior={navegarAnterior}
+        onNavegarSiguiente={navegarSiguiente}
         onMostrarEstadisticas={() => setModalEstadisticasVisible(true)}
       />
 
@@ -243,8 +279,10 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding }) {
         <ModalEstadisticas
           elementosFiltrados={tipoElemento === 'areas_naturales' ? [] : filteredConcesiones}
           anps={tipoElemento === 'areas_naturales' ? AREAS_NATURALES : []}
-          tipoElemento={tipoElemento} regionSeleccionada={selectedRegion}
-          municipioSeleccionado={selectedMunicipio} filtroAnio={yearFilter}
+          tipoElemento={tipoElemento}
+          regionSeleccionada={selectedRegion}
+          municipioSeleccionado={selectedMunicipio}
+          filtroAnio={yearFilter}
           onCerrar={() => setModalEstadisticasVisible(false)}
           totalConcesionesGuerrero={CONCESIONES_PROCESADAS.reduce((s, c) => s + parseFloat(c.superficie || 0), 0)}
           totalOrdenesGuerrero={ORDENES_PROCESADAS.reduce((s, o) => s + parseFloat(o.superficie || 0), 0)}
@@ -256,8 +294,6 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding }) {
 
 // ── Root App ──────────────────────────────────────────────────────────────────
 function App() {
-  // La sesión la maneja el servidor con cookie HttpOnly.
-  // El frontend solo guarda en qué "pantalla" está.
   const [view, setView]               = useState('login');
   const [tipoInicial, setTipoInicial] = useState('concesiones');
   const [transitioning, setTransitioning] = useState(false);

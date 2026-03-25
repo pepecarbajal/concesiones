@@ -3,6 +3,7 @@ import React from 'react';
 const BotonesMovil = ({
   panelVisible,
   filtersVisible,
+  mostrarBtnFiltros = true, // false en ordenes y ANP
   onTogglePanel,
   onToggleFiltros
 }) => {
@@ -17,30 +18,29 @@ const BotonesMovil = ({
         <span>{panelVisible ? 'Cerrar' : 'Información'}</span>
       </button>
 
-      <button
-        className={`btn-toggle-filters ${filtersVisible ? 'active' : ''}`}
-        onClick={onToggleFiltros}
-        aria-label={filtersVisible ? 'Cerrar filtros' : 'Abrir filtros'}
-      >
-        <IconoToggleFiltros visible={filtersVisible} />
-        <span>{filtersVisible ? 'Cerrar' : 'Filtros'}</span>
-      </button>
+      {mostrarBtnFiltros && (
+        <button
+          className={`btn-toggle-filters ${filtersVisible ? 'active' : ''}`}
+          onClick={onToggleFiltros}
+          aria-label={filtersVisible ? 'Cerrar filtros' : 'Abrir filtros'}
+        >
+          <IconoToggleFiltros visible={filtersVisible} />
+          <span>{filtersVisible ? 'Cerrar' : 'Filtros'}</span>
+        </button>
+      )}
     </div>
   );
 };
 
-/**
- * Icono para el botón de toggle del panel
- */
 const IconoTogglePanel = ({ visible }) => (
-  <svg 
-    width="18" 
-    height="18" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2.5" 
-    strokeLinecap="round" 
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
     strokeLinejoin="round"
   >
     {visible ? (
@@ -58,18 +58,15 @@ const IconoTogglePanel = ({ visible }) => (
   </svg>
 );
 
-/**
- * Icono para el botón de toggle de filtros
- */
 const IconoToggleFiltros = ({ visible }) => (
-  <svg 
-    width="18" 
-    height="18" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2.5" 
-    strokeLinecap="round" 
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
     strokeLinejoin="round"
   >
     {visible ? (

@@ -28,68 +28,40 @@ const formatearSuperficie = (sup) => {
   return Number(parseFloat(sup).toFixed(2)).toLocaleString('es-MX') + ' ha';
 };
 
-/**
- * Convierte el ID_ANP a un nombre de archivo válido para el PDF
- * Ej: "6.1.03.137" → "6_1_03_137"
- */
 const idAnpANombreArchivo = (idAnp) => {
   if (!idAnp) return null;
   return idAnp.replace(/\./g, '_');
 };
 
-// ── Botón de descarga PDF ────────────────────────────────────────────────────
+// ── Botón de descarga PDF ─────────────────────────────────────────────────────
 const BtnDescargaPDF = ({ idAnp, nombreAnp }) => {
   const nombreArchivo = idAnpANombreArchivo(idAnp);
   if (!nombreArchivo) return null;
-
   const rutaPDF = `/pdfs-anp/${nombreArchivo}.pdf`;
 
   return (
     <>
       <style>{`
         .btn-anp-pdf {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          width: 100%;
-          padding: 14px 20px;
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+          width: 100%; padding: 14px 20px;
           background: linear-gradient(135deg, #166534 0%, #15803d 100%);
-          color: white;
-          text-align: center;
-          border-radius: 12px;
-          text-decoration: none;
-          font-weight: 600;
-          font-size: 14px;
+          color: white; text-align: center; border-radius: 12px;
+          text-decoration: none; font-weight: 600; font-size: 14px;
           transition: all 0.2s;
           box-shadow: 0 4px 12px rgba(21, 128, 61, 0.3);
-          border: none;
-          cursor: pointer;
-          font-family: inherit;
+          border: none; cursor: pointer; font-family: inherit;
         }
-
         .btn-anp-pdf:hover {
           transform: translateY(-1px);
           box-shadow: 0 6px 18px rgba(21, 128, 61, 0.45);
           background: linear-gradient(135deg, #14532d 0%, #166534 100%);
         }
-
-        .btn-anp-pdf:active {
-          transform: translateY(0);
-        }
-
-        .btn-anp-pdf-wrap {
-          margin-top: 20px;
-        }
-
+        .btn-anp-pdf:active { transform: translateY(0); }
+        .btn-anp-pdf-wrap { margin-top: 20px; }
         .btn-anp-pdf-nota {
-          display: flex;
-          align-items: center;
-          gap: 5px;
-          margin-top: 8px;
-          font-size: 10px;
-          color: #9ca3af;
-          justify-content: center;
+          display: flex; align-items: center; gap: 5px;
+          margin-top: 8px; font-size: 10px; color: #9ca3af; justify-content: center;
         }
       `}</style>
 
@@ -126,7 +98,7 @@ const BtnDescargaPDF = ({ idAnp, nombreAnp }) => {
   );
 };
 
-// ── Componente principal ─────────────────────────────────────────────────────
+// ── Componente principal ──────────────────────────────────────────────────────
 const VistaDetalleANP = ({
   anp,
   indiceActual,
@@ -146,16 +118,9 @@ const VistaDetalleANP = ({
 
   return (
     <div className="side-panel-content">
-      {/* ── Header ── */}
       <div className="panel-header anp-panel-header">
-        <ControlesNavegacion
-          indiceActual={indiceActual}
-          totalElementos={totalElementos}
-          onAnterior={onNavegarAnterior}
-          onSiguiente={onNavegarSiguiente}
-          deshabilitado={totalElementos === 0}
-        />
 
+        {/* 1. Volver — arriba de todo */}
         <button onClick={onVolver} className="btn-back">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -164,9 +129,17 @@ const VistaDetalleANP = ({
           Volver a la lista
         </button>
 
-        <h2 className="concesion-header-title">{anp.NOMBRE || 'Sin nombre'}</h2>
+        {/* 2. Anterior / Siguiente */}
+        <ControlesNavegacion
+          indiceActual={indiceActual}
+          totalElementos={totalElementos}
+          onAnterior={onNavegarAnterior}
+          onSiguiente={onNavegarSiguiente}
+          deshabilitado={totalElementos === 0}
+        />
 
-        {/* Badge de categoría */}
+        {/* 3. Título y badge de categoría */}
+        <h2 className="concesion-header-title">{anp.NOMBRE || 'Sin nombre'}</h2>
         <div className="status-badge" style={{ background: cat.color }}>
           <span className="status-dot">●</span>
           {cat.nombre}
@@ -176,7 +149,6 @@ const VistaDetalleANP = ({
       {/* ── Contenido ── */}
       <div className="scrollable-content">
 
-        {/* Tarjetas de superficie */}
         <div className="anp-superficie-grid">
           <div className="anp-sup-card" style={{ borderColor: cat.border, background: cat.bg }}>
             <div className="anp-sup-label" style={{ color: cat.color }}>Superficie Total</div>
@@ -200,7 +172,6 @@ const VistaDetalleANP = ({
           )}
         </div>
 
-        {/* Información general */}
         <div className="info-rows" style={{ marginTop: '20px' }}>
           <FilaInformacion etiqueta="ID ANP"     valor={anp.ID_ANP} />
           <FilaInformacion etiqueta="Municipios" valor={anp.MUNICIPIOS} />
@@ -208,7 +179,6 @@ const VistaDetalleANP = ({
           <FilaInformacion etiqueta="Región"     valor={anp.REGION} />
         </div>
 
-        {/* Fechas */}
         <div style={{ marginTop: '20px' }}>
           <div className="anp-fechas-titulo">Fechas de decreto</div>
           <div className="dates-grid" style={{ marginTop: '10px' }}>
@@ -218,8 +188,8 @@ const VistaDetalleANP = ({
                   stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                   <line x1="16" y1="2" x2="16" y2="6"/>
-                  <line x1="8" y1="2" x2="8" y2="6"/>
-                  <line x1="3" y1="10" x2="21" y2="10"/>
+                  <line x1="8"  y1="2" x2="8"  y2="6"/>
+                  <line x1="3"  y1="10" x2="21" y2="10"/>
                 </svg>
               </span>
               <div className="date-info">
@@ -232,7 +202,7 @@ const VistaDetalleANP = ({
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
                   stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="8"  x2="12"   y2="12"/>
                   <line x1="12" y1="16" x2="12.01" y2="16"/>
                 </svg>
               </span>
@@ -250,7 +220,7 @@ const VistaDetalleANP = ({
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10"/>
-            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="8"  x2="12"   y2="12"/>
             <line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
           CONANP. 2024. Áreas Naturales Protegidas Federales de México, enero 2024.
