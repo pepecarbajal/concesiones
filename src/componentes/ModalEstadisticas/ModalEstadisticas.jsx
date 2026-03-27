@@ -10,81 +10,6 @@ const COLORES = [
   '#f43f5e', '#06b6d4'
 ];
 
-// ── Gráfica de línea SVG ──────────────────────────────────────────────────────
-const LineChart = ({ data }) => {
-  const W = 720, H = 190;
-  const PAD = { top: 20, right: 24, bottom: 48, left: 52 };
-  const innerW = W - PAD.left - PAD.right;
-  const innerH = H - PAD.top - PAD.bottom;
-
-  if (!data || data.length < 2) return null;
-
-  const maxY = Math.max(...data.map(d => d.count)) * 1.15 || 1;
-  const xStep = innerW / (data.length - 1);
-
-  const toX = i => PAD.left + i * xStep;
-  const toY = v => PAD.top + innerH - (v / maxY) * innerH;
-
-  const pts  = data.map((d, i) => `${toX(i)},${toY(d.count)}`).join(' ');
-  const area = [
-    `M ${toX(0)},${toY(data[0].count)}`,
-    ...data.slice(1).map((d, i) => `L ${toX(i + 1)},${toY(d.count)}`),
-    `L ${toX(data.length - 1)},${PAD.top + innerH}`,
-    `L ${toX(0)},${PAD.top + innerH}`,
-    'Z'
-  ].join(' ');
-
-  const yTickVals = Array.from({ length: 5 }, (_, i) =>
-    Math.round((maxY / 1.15 / 4) * i)
-  );
-
-  // Show every Nth label so x-axis is not crowded
-  const labelStep = Math.ceil(data.length / 16);
-
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: H, display: 'block' }}>
-      <defs>
-        <linearGradient id="lc-grad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#667eea" stopOpacity="0.18" />
-          <stop offset="100%" stopColor="#667eea" stopOpacity="0.00" />
-        </linearGradient>
-      </defs>
-
-      {yTickVals.map(v => (
-        <g key={v}>
-          <line x1={PAD.left} y1={toY(v)} x2={PAD.left + innerW} y2={toY(v)}
-            stroke="#eef0f8" strokeWidth="1" />
-          <text x={PAD.left - 8} y={toY(v) + 4} textAnchor="end"
-            fontSize="11" fill="#94a3b8" fontFamily="inherit">
-            {v}
-          </text>
-        </g>
-      ))}
-
-      <path d={area} fill="url(#lc-grad)" />
-
-      <polyline points={pts} fill="none" stroke="#667eea"
-        strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round" />
-
-      {data.map((d, i) => (
-        <g key={i}>
-          <circle cx={toX(i)} cy={toY(d.count)} r="3.8"
-            fill="white" stroke="#667eea" strokeWidth="2.2" />
-          {i % labelStep === 0 && (
-            <text
-              x={toX(i)} y={PAD.top + innerH + 16}
-              textAnchor="middle" fontSize="11" fill="#94a3b8" fontFamily="inherit"
-              transform={`rotate(-40, ${toX(i)}, ${PAD.top + innerH + 16})`}
-            >
-              {d.label}
-            </text>
-          )}
-        </g>
-      ))}
-    </svg>
-  );
-};
-
 const FilaRanking = ({
   numero, nombre, subtitulo, superficie, maxSup,
   totalBase, color, index, animado,
@@ -445,26 +370,6 @@ const ModalEstadisticas = ({
     return { arr, maxSup: arr[0]?.superficieNum || 1 };
   }, [anps]);
 
-
-  const datosLinea = useMemo(() => {
-    const conteo = {};
-    elementosFiltrados
-      .filter(e => e.tipo !== 'orden_exploracion')
-      .forEach(c => {
-        if (!c.fecha_inicio) return;
-        const partes = c.fecha_inicio.split('/');
-        if (partes.length !== 3) return;
-        let anio = partes[2];
-        if (anio.length === 2) anio = parseInt(anio) > 50 ? '19' + anio : '20' + anio;
-        const num = parseInt(anio);
-        if (isNaN(num) || num < 1900 || num > 2100) return;
-        conteo[num] = (conteo[num] || 0) + 1;
-      });
-    return Object.entries(conteo)
-      .sort(([a], [b]) => parseInt(a) - parseInt(b))
-      .map(([anio, count]) => ({ label: anio, count }));
-  }, [elementosFiltrados]);
-
   const activos = vista === 'empresa' ? datosEmpresa : datosConcesion;
 
   if (tipoElemento === 'ordenes') {
@@ -547,6 +452,7 @@ const ModalEstadisticas = ({
     );
   }
 
+  // ── Vista Concesiones ─────────────────────────────────────────────────────
   return (
     <ModalShell onCerrar={onCerrar} contexto={contexto} titulo="Estadísticas Mineras">
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', borderBottom: '1px solid #f1f5f9' }}>
@@ -560,14 +466,6 @@ const ModalEstadisticas = ({
           accent last
         />
       </div>
-
-      {/* Gráfica por año */}
-      {datosLinea.length > 1 && (
-        <div style={{ padding: '22px 32px 10px' }}>
-          <SectionLabel>Concesiones otorgadas por año</SectionLabel>
-          <LineChart data={datosLinea} />
-        </div>
-      )}
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 8, padding: '18px 32px 0' }}>

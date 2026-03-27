@@ -10,6 +10,7 @@ const CATEGORIAS = {
   'SB':   { nombre: 'Santuario',                        color: '#0d9488', bg: '#f0fdfa', border: '#99f6e4' },
   'SANT': { nombre: 'Santuario',                        color: '#0d9488', bg: '#f0fdfa', border: '#99f6e4' },
   'FL':   { nombre: 'Área de Protección Flora y Fauna', color: '#db2777', bg: '#fdf2f8', border: '#fbcfe8' },
+  'APFF': { nombre: 'Área de Protección de Flora y Fauna', color: '#db2777', bg: '#fdf2f8', border: '#fbcfe8' },
 };
 
 const formatearFecha = (fechaISO) => {
@@ -28,16 +29,8 @@ const formatearSuperficie = (sup) => {
   return Number(parseFloat(sup).toFixed(2)).toLocaleString('es-MX') + ' ha';
 };
 
-const idAnpANombreArchivo = (idAnp) => {
-  if (!idAnp) return null;
-  return idAnp.replace(/\./g, '_');
-};
-
-// ── Botón de descarga PDF ─────────────────────────────────────────────────────
-const BtnDescargaPDF = ({ idAnp, nombreAnp }) => {
-  const nombreArchivo = idAnpANombreArchivo(idAnp);
-  if (!nombreArchivo) return null;
-  const rutaPDF = `/pdfs-anp/${nombreArchivo}.pdf`;
+const BtnDescargaPDF = ({ pdfUrl, nombreAnp, idAnp }) => {
+  if (!pdfUrl) return null;
 
   return (
     <>
@@ -67,10 +60,10 @@ const BtnDescargaPDF = ({ idAnp, nombreAnp }) => {
 
       <div className="btn-anp-pdf-wrap">
         <a
-          href={rutaPDF}
+          href={pdfUrl}
           target="_blank"
           rel="noopener noreferrer"
-          download={`ANP_${nombreArchivo}.pdf`}
+          download
           className="btn-anp-pdf"
           title={`Descargar ficha PDF de ${nombreAnp}`}
         >
@@ -98,7 +91,6 @@ const BtnDescargaPDF = ({ idAnp, nombreAnp }) => {
   );
 };
 
-// ── Componente principal ──────────────────────────────────────────────────────
 const VistaDetalleANP = ({
   anp,
   indiceActual,
@@ -214,7 +206,11 @@ const VistaDetalleANP = ({
           </div>
         </div>
 
-        <BtnDescargaPDF idAnp={anp.ID_ANP} nombreAnp={anp.NOMBRE} />
+        <BtnDescargaPDF
+          pdfUrl={anp.pdf_url}
+          nombreAnp={anp.NOMBRE}
+          idAnp={anp.ID_ANP}
+        />
 
         <div className="anp-fuente" style={{ marginTop: '16px' }}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none"

@@ -13,22 +13,15 @@ const CAT_INFO = {
   'FL':   { nombre: 'Área de Protección Flora y Fauna', color: '#db2777' },
 };
 
-const idAnpANombreArchivo = (idAnp) => {
-  if (!idAnp) return null;
-  return idAnp.replace(/\./g, '_');
-};
+const BtnPDFListaItem = memo(({ pdfUrl, nombreAnp }) => {
+  if (!pdfUrl) return null;
 
-// ── Botón PDF pequeño para la lista de ANP ───────────────────────────────────
-const BtnPDFListaItem = memo(({ idAnp, nombreAnp }) => {
-  const nombreArchivo = idAnpANombreArchivo(idAnp);
-  if (!nombreArchivo) return null;
-  const rutaPDF = `/pdfs-anp/${nombreArchivo}.pdf`;
   return (
     <a
-      href={rutaPDF}
+      href={pdfUrl}
       target="_blank"
       rel="noopener noreferrer"
-      download={`ANP_${nombreArchivo}.pdf`}
+      download
       title={`Descargar PDF de ${nombreAnp}`}
       className="anp-lista-pdf-btn"
       onClick={(e) => e.stopPropagation()}
@@ -45,7 +38,6 @@ const BtnPDFListaItem = memo(({ idAnp, nombreAnp }) => {
 });
 BtnPDFListaItem.displayName = 'BtnPDFListaItem';
 
-// ── Lista de ANP ──────────────────────────────────────────────────────────────
 const ListaANP = memo(({ anps, onSeleccionar }) => {
   if (!anps || anps.length === 0) {
     return (
@@ -117,7 +109,8 @@ const ListaANP = memo(({ anps, onSeleccionar }) => {
                     {anp.CAT_MANEJO}
                   </span>
                 </div>
-                <BtnPDFListaItem idAnp={anp.ID_ANP} nombreAnp={anp.NOMBRE} />
+                {/* Pasa pdf_url directo, sin construir nada */}
+                <BtnPDFListaItem pdfUrl={anp.pdf_url} nombreAnp={anp.NOMBRE} />
               </div>
             </div>
           );
@@ -128,7 +121,6 @@ const ListaANP = memo(({ anps, onSeleccionar }) => {
 });
 ListaANP.displayName = 'ListaANP';
 
-// ── Estadísticas ANP ──────────────────────────────────────────────────────────
 const EstadisticasANP = memo(({ anps }) => {
   const stats = useMemo(() => {
     const total = anps.length;
@@ -157,7 +149,6 @@ const EstadisticasANP = memo(({ anps }) => {
 });
 EstadisticasANP.displayName = 'EstadisticasANP';
 
-// ── Configuración de header por tipo ─────────────────────────────────────────
 const TIPO_HEADER = {
   concesiones:     {
     titulo: 'Concesiones Mineras',
@@ -176,7 +167,6 @@ const TIPO_HEADER = {
   },
 };
 
-// ── Componente principal ──────────────────────────────────────────────────────
 const VistaLista = memo(({
   elementos,
   anps,
@@ -184,7 +174,7 @@ const VistaLista = memo(({
   onSeleccionarANP,
   esMovil,
   tipoElemento,
-  onCambiarTipo,      // se mantiene por compatibilidad pero no se usa para renderizar botones
+  onCambiarTipo,
   totalConcesiones,
   totalOrdenes,
   totalANPs,
@@ -213,7 +203,6 @@ const VistaLista = memo(({
 
   return (
     <div className="side-panel-content">
-      {/* ── Header: solo título + botón de estadísticas, sin selector de tipo ── */}
       <div
         className="panel-header panel-header-main"
         style={{ background: headerInfo.gradiente }}
@@ -236,7 +225,6 @@ const VistaLista = memo(({
         </button>
       </div>
 
-      {/* ── Vista ANP ── */}
       {esANP ? (
         <div className="scrollable-content-list">
           <EstadisticasANP anps={anps} />
@@ -246,7 +234,6 @@ const VistaLista = memo(({
           <ListaANP anps={anps} onSeleccionar={onSeleccionarANP} />
         </div>
       ) : (
-        /* ── Vista Concesiones / Órdenes ── */
         <div className="scrollable-content-list">
           <div className="stats-grid">
             <TarjetaEstadistica icono="chart"    etiqueta="Total"      valor={estadisticas.totalElementos}    color="color-purple" />

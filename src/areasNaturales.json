@@ -11,7 +11,8 @@
     "S_MARINA": 0,
     "PRIM_DEC": "1986-10-29T00:00:00.000Z",
     "ULT_DOF": "2022-12-24T00:00:00.000Z",
-    "coords": [-101.008, 17.261]
+    "coords": [-101.008, 17.261],
+    "pdf_url": "/pdfs-anp/Santuario_Tlacoyunque_DOF24-12-2022.pdf"
   },
   {
     "ID_ANP": "8.8.01.080",
@@ -25,7 +26,8 @@
     "S_MARINA": 0,
     "PRIM_DEC": "1986-10-29T00:00:00.000Z",
     "ULT_DOF": "2022-12-24T00:00:00.000Z",
-    "coords": [-98.667, 16.425]
+    "coords": [-98.667, 16.425],
+    "pdf_url": "/pdfs-anp/Santuario_Playa_Tierra_Colorada_DOF24-12-2022.pdf"
   },
   {
     "ID_ANP": "6.1.03.137",
@@ -39,7 +41,8 @@
     "S_MARINA": 0,
     "PRIM_DEC": "1999-09-08T00:00:00.000Z",
     "ULT_DOF": "1999-09-08T00:00:00.000Z",
-    "coords": [-99.033, 18.433]
+    "coords": [-99.033, 18.433],
+    "pdf_url": "/pdfs-anp/Reserva_Biosfera_Huautla_DOF08-09-1999.pdf"
   },
   {
     "ID_ANP": "6.7.04.188",
@@ -53,7 +56,8 @@
     "S_MARINA": 0,
     "PRIM_DEC": "2023-08-15T00:00:00.000Z",
     "ULT_DOF": "2023-08-15T00:00:00.000Z",
-    "coords": [-101.584357, 17.644814]
+    "coords": [-101.584357, 17.644814],
+    "pdf_url": "/pdfs-anp/Area_Proteccion_Flora_Y_Fauna_Hermenegildo_Galeana_DOF15-08-2023.pdf"
   },
   {
     "ID_ANP": "6.3.27.193",
@@ -67,7 +71,8 @@
     "S_MARINA": 0,
     "PRIM_DEC": "2023-08-15T00:00:00.000Z",
     "ULT_DOF": "2023-08-15T00:00:00.000Z",
-    "coords": [-101.629402, 17.677756]
+    "coords": [-101.629402, 17.677756],
+    "pdf_url": "/pdfs-anp/Parque_Nacional_Vicente_Guerrero_DOF15-08-2023.pdf"
   },
   {
     "ID_ANP": "6.1.07.225",
@@ -81,7 +86,8 @@
     "S_MARINA": 0,
     "PRIM_DEC": "2024-01-08T00:00:00.000Z",
     "ULT_DOF": "2024-01-11T00:00:00.000Z",
-    "coords": [-100.535, 17.664]
+    "coords": [-100.535, 17.664],
+    "pdf_url": "/pdfs-anp/Reserva_Biosfera_Tecuani_DOF08-01-2024.pdf"
   },
   {
     "ID_ANP": "6.1.07.001",
@@ -95,7 +101,8 @@
     "S_MARINA": 0,
     "PRIM_DEC": "1936-04-23T00:00:00.000Z",
     "ULT_DOF": "1936-04-23T00:00:00.000Z",
-    "coords": [-99.500, 18.655]
+    "coords": [-99.500, 18.655],
+    "pdf_url": "/pdfs-anp/Parque_Nacional_Grutas_Cacahuamilpa_DOF23-04-1936.pdf"
   },
   {
     "ID_ANP": "6.1.07.002",
@@ -109,7 +116,8 @@
     "S_MARINA": 0,
     "PRIM_DEC": "1980-04-04T00:00:00.000Z",
     "ULT_DOF": "1980-04-04T00:00:00.000Z",
-    "coords": [-99.910135, 16.902095]
+    "coords": [-99.910135, 16.902095],
+    "pdf_url": "/pdfs-anp/Parque_Nacional_El_Veladero_DOF04-04-1980.pdf"
   },
   {
     "ID_ANP": "6.3.07.001",
@@ -123,6 +131,7 @@
     "S_MARINA": 0,
     "PRIM_DEC": "1942-09-11T00:00:00.000Z",
     "ULT_DOF": "1942-09-11T00:00:00.000Z",
-    "coords": [-99.082351, 17.603036]
+    "coords": [-99.082351, 17.603036],
+    "pdf_url": "/pdfs-anp/parque-nacional-general-juan-alvarez.pdf"
   }
 ]
