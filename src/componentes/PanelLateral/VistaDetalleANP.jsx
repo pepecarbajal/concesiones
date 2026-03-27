@@ -65,7 +65,7 @@ const BtnDescargaPDF = ({ pdfUrl, nombreAnp, idAnp }) => {
           rel="noopener noreferrer"
           download
           className="btn-anp-pdf"
-          title={`Descargar ficha PDF de ${nombreAnp}`}
+          title={`Descargar PDF de ${nombreAnp}`}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -75,7 +75,7 @@ const BtnDescargaPDF = ({ pdfUrl, nombreAnp, idAnp }) => {
             <polyline points="7 10 12 15 17 10"/>
             <line x1="12" y1="15" x2="12" y2="3"/>
           </svg>
-          Descargar Ficha PDF
+          Descargar PDF
         </a>
         <div className="btn-anp-pdf-nota">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
