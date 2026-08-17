@@ -290,12 +290,12 @@ html, body {
   border-radius: 10px;
 }
 
-.mapboxgl-ctrl-top-right {
+.mapboxgl-map .mapboxgl-ctrl-top-right {
   top: 66px;
   right: 10px;
 }
 
-.mapboxgl-ctrl-bottom-right {
+.mapboxgl-map .mapboxgl-ctrl-bottom-right {
   bottom: 30px;
 }
 
@@ -1058,7 +1058,7 @@ html, body {
   .scrollable-content      { padding: 20px; padding-bottom: 60px; }
   .scrollable-content-list { padding: 16px; padding-bottom: 60px; }
 
-  .mapboxgl-ctrl-top-right { top: 62px; }
+  .mapboxgl-map .mapboxgl-ctrl-top-right { top: 62px; }
   .mobile-toggle-buttons   { top: 66px; }
 }
 
@@ -1172,7 +1172,7 @@ html, body {
 
   .btn-rpm { padding: 12px 18px; font-size: 13px; margin-bottom: 20px; }
 
-  .mapboxgl-ctrl-top-right { top: 58px; right: 10px; }
+  .mapboxgl-map .mapboxgl-ctrl-top-right { top: 58px; right: 10px; }
   .mapboxgl-popup-content  { max-width: 280px !important; }
 }
 
@@ -1211,7 +1211,7 @@ html, body {
   .scrollable-content-list { padding: 12px; padding-bottom: 80px; }
 
   .mapboxgl-popup-content { max-width: 240px !important; font-size: 11px !important; }
-  .mapboxgl-ctrl-top-right{ top: 54px; }
+  .mapboxgl-map .mapboxgl-ctrl-top-right{ top: 54px; }
 }
 
 /* ========================================
@@ -1891,7 +1891,7 @@ html, body {
   }
 
   /* ── Controles del mapa ── */
-  .mapboxgl-ctrl-top-right {
+  .mapboxgl-map .mapboxgl-ctrl-top-right {
     top: 60px;
   }
 
