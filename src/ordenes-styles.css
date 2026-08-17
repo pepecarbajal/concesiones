@@ -6,7 +6,7 @@
   gap: 8px;
   margin-bottom: 16px;
   padding: 8px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.06);
   border-radius: 8px;
 }
 
@@ -18,9 +18,9 @@
   gap: 6px;
   padding: 10px 12px;
   background: rgba(255, 255, 255, 0.1);
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
   border-radius: 6px;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.82);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -28,33 +28,33 @@
 }
 
 .layer-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.32);
   color: white;
   transform: translateY(-1px);
 }
 
 .layer-btn.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-color: #667eea;
+  background: var(--acento);
+  border-color: var(--acento);
   color: white;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(47, 72, 88, 0.3);
 }
 
 .layer-btn svg {
   flex-shrink: 0;
 }
 
-/* Badge para órdenes de exploración - AMARILLO */
+/* Badge para órdenes de exploración - DORADO */
 .orden-badge {
-  background: linear-gradient(135deg, #FFA500 0%, #FF8C00 100%) !important;
-  border-color: #FFA500 !important;
+  background: var(--oro) !important;
+  border-color: var(--oro) !important;
 }
 
 .orden-badge-small {
   display: inline-block;
   padding: 2px 6px;
-  background: linear-gradient(135deg, #FFA500 0%, #FF8C00 100%);
+  background: var(--oro);
   border-radius: 4px;
   color: white;
   font-size: 10px;
@@ -62,9 +62,9 @@
   letter-spacing: 0.5px;
 }
 
-/* Punto de estado para órdenes - AMARILLO */
+/* Punto de estado para órdenes - DORADO */
 .concesion-status-dot.orden {
-  background: #FFA500;
+  background: var(--oro);
 }
 
 /* Marcador personalizado para órdenes */
@@ -75,7 +75,7 @@
 
 .custom-marker-orden:hover {
   transform: scale(1.15);
-  filter: drop-shadow(0 4px 8px rgba(255, 165, 0, 0.4));
+  filter: drop-shadow(0 4px 8px rgba(169, 129, 43, 0.4));
 }
 
 /* Responsive para selector de capas */
@@ -93,12 +93,12 @@
 
 /* Ajustes para la tarjeta de información de órdenes */
 .info-row .info-value a {
-  color: #FFA500;
+  color: var(--oro);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 .info-row .info-value a:hover {
-  color: #FF8C00;
+  color: var(--oro);
   text-decoration: underline;
 }

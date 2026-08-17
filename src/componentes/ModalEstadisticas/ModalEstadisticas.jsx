@@ -5,9 +5,9 @@ const SUPERFICIE_MEXICO_HA   = 196_437_500;
 const SUPERFICIE_CONCESIONADA_GUERRERO_HA = 398_359;
 
 const COLORES = [
-  '#3b82f6', '#8b5cf6', '#ec4899', '#f97316',
-  '#eab308', '#22c55e', '#14b8a6', '#6366f1',
-  '#f43f5e', '#06b6d4'
+  '#1E7B4F', '#A9812B', '#2F4858', '#8A4F14',
+  '#3B5A6B', '#C8A44A', '#155A39', '#7E5F1E',
+  '#223640', '#5E636D'
 ];
 
 const FilaRanking = ({
@@ -25,7 +25,7 @@ const FilaRanking = ({
     <div style={{
       display: 'grid', gridTemplateColumns: '36px 1fr auto',
       gap: '0 16px', alignItems: 'start',
-      padding: '13px 0', borderBottom: '1px solid #f1f5f9',
+      padding: '13px 0', borderBottom: '1px solid #E7E3DA',
     }}>
       <div style={{
         width: 36, height: 36, borderRadius: 10,
@@ -38,21 +38,21 @@ const FilaRanking = ({
 
       <div style={{ minWidth: 0 }}>
         <div style={{
-          fontSize: 15, fontWeight: 700, color: '#1e293b', lineHeight: 1.3,
+          fontSize: 15, fontWeight: 700, color: '#20242E', lineHeight: 1.3,
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>
           {nombre}
         </div>
         {subtitulo && (
           <div style={{
-            fontSize: 12, color: '#94a3b8', marginTop: 2,
+            fontSize: 12, color: '#5E636D', marginTop: 2,
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
             {subtitulo}
           </div>
         )}
         <div style={{
-          height: 7, background: '#f1f5f9', borderRadius: 99,
+          height: 7, background: '#E7E3DA', borderRadius: 99,
           overflow: 'hidden', margin: '8px 0 7px',
         }}>
           <div style={{
@@ -70,7 +70,7 @@ const FilaRanking = ({
           </span>
           <span style={{
             fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 20,
-            color: '#64748b', background: '#f8fafc', border: '1px solid #e2e8f0',
+            color: '#5E636D', background: '#F8F7F4', border: '1px solid #E7E3DA',
           }}>
             {pctTotal}% {totalLabel}
           </span>
@@ -78,8 +78,8 @@ const FilaRanking = ({
       </div>
 
       <div style={{ textAlign: 'right', flexShrink: 0 }}>
-        <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>{hectareas}</div>
-        <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ha</div>
+        <div style={{ fontSize: 16, fontWeight: 800, color: '#20242E' }}>{hectareas}</div>
+        <div style={{ fontSize: 10, color: '#5E636D', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ha</div>
       </div>
     </div>
   );
@@ -96,7 +96,7 @@ const FilaOrden = ({ numero, orden, maxSup, color, index, animado }) => {
     <div style={{
       display: 'grid', gridTemplateColumns: '36px 1fr auto',
       gap: '0 16px', alignItems: 'start',
-      padding: '13px 0', borderBottom: '1px solid #f1f5f9',
+      padding: '13px 0', borderBottom: '1px solid #E7E3DA',
     }}>
       <div style={{
         width: 36, height: 36, borderRadius: 10,
@@ -109,16 +109,16 @@ const FilaOrden = ({ numero, orden, maxSup, color, index, animado }) => {
 
       <div style={{ minWidth: 0 }}>
         <div style={{
-          fontSize: 15, fontWeight: 700, color: '#1e293b', lineHeight: 1.3,
+          fontSize: 15, fontWeight: 700, color: '#20242E', lineHeight: 1.3,
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>
           {orden.nombre || orden.num_orden}
         </div>
-        <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>
+        <div style={{ fontSize: 12, color: '#5E636D', marginTop: 2 }}>
           {orden.num_orden} · {orden.municipio || orden.estado || '—'}
         </div>
         <div style={{
-          height: 7, background: '#f1f5f9', borderRadius: 99,
+          height: 7, background: '#E7E3DA', borderRadius: 99,
           overflow: 'hidden', margin: '8px 0 7px',
         }}>
           <div style={{
@@ -136,7 +136,7 @@ const FilaOrden = ({ numero, orden, maxSup, color, index, animado }) => {
           </span>
           <span style={{
             fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 20,
-            color: '#64748b', background: '#f8fafc', border: '1px solid #e2e8f0',
+            color: '#5E636D', background: '#F8F7F4', border: '1px solid #E7E3DA',
           }}>
             {orden.a_favor || 'SGM'}
           </span>
@@ -144,8 +144,8 @@ const FilaOrden = ({ numero, orden, maxSup, color, index, animado }) => {
       </div>
 
       <div style={{ textAlign: 'right', flexShrink: 0 }}>
-        <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>{hectareas}</div>
-        <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ha</div>
+        <div style={{ fontSize: 16, fontWeight: 800, color: '#20242E' }}>{hectareas}</div>
+        <div style={{ fontSize: 10, color: '#5E636D', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ha</div>
       </div>
     </div>
   );
@@ -156,18 +156,18 @@ const KpiCell = ({ label, value, sub, accent, last }) => (
   <div style={{
     display: 'flex', flexDirection: 'column', alignItems: 'center',
     padding: '20px 16px', gap: 5, textAlign: 'center',
-    borderRight: last ? 'none' : '1px solid #f1f5f9',
+    borderRight: last ? 'none' : '1px solid #E7E3DA',
   }}>
     <div style={{
       fontSize: 26, fontWeight: 800, letterSpacing: '-0.6px', lineHeight: 1,
-      color: accent ? '#667eea' : '#0f172a',
+      color: accent ? '#2F4858' : '#20242E',
     }}>
       {value}
     </div>
     {sub && (
-      <div style={{ fontSize: 12, color: '#8b5cf6', fontWeight: 700 }}>{sub}</div>
+      <div style={{ fontSize: 12, color: '#A9812B', fontWeight: 700 }}>{sub}</div>
     )}
-    <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+    <div style={{ fontSize: 12, color: '#5E636D', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
       {label}
     </div>
   </div>
@@ -190,8 +190,8 @@ const ModalShell = ({ children, onCerrar, titulo, contexto }) => (
       @keyframes msFadeIn  { from{opacity:0} to{opacity:1} }
       @keyframes msSlideUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
       .ms-scroll::-webkit-scrollbar       { width:5px }
-      .ms-scroll::-webkit-scrollbar-thumb { background:#e2e8f0; border-radius:4px }
-      .ms-cerrar-btn:hover { background: #e2e8f0 !important; }
+      .ms-scroll::-webkit-scrollbar-thumb { background:#E7E3DA; border-radius:4px }
+      .ms-cerrar-btn:hover { background: #EDE9E1 !important; }
     `}</style>
 
     <div className="ms-scroll" style={{
@@ -205,16 +205,16 @@ const ModalShell = ({ children, onCerrar, titulo, contexto }) => (
       {/* Header sticky */}
       <div style={{
         padding: '26px 32px 22px',
-        borderBottom: '1px solid #f1f5f9',
+        borderBottom: '1px solid #E7E3DA',
         position: 'sticky', top: 0, zIndex: 2,
         background: '#fff', borderRadius: '20px 20px 0 0',
         display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
       }}>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.4px' }}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: '#20242E', letterSpacing: '-0.4px' }}>
             {titulo}
           </div>
-          <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 5, fontWeight: 500 }}>
+          <div style={{ fontSize: 13, color: '#5E636D', marginTop: 5, fontWeight: 500 }}>
             {contexto}
           </div>
         </div>
@@ -223,7 +223,7 @@ const ModalShell = ({ children, onCerrar, titulo, contexto }) => (
           onClick={onCerrar}
           style={{
             width: 36, height: 36, borderRadius: 9, border: 'none',
-            background: '#f1f5f9', color: '#64748b', cursor: 'pointer',
+            background: '#EDE9E1', color: '#5E636D', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0, transition: 'background 0.15s',
           }}
@@ -241,7 +241,7 @@ const ModalShell = ({ children, onCerrar, titulo, contexto }) => (
 
 const SectionLabel = ({ children }) => (
   <div style={{
-    fontSize: 11, fontWeight: 700, color: '#cbd5e1',
+    fontSize: 11, fontWeight: 700, color: '#8B8F96',
     textTransform: 'uppercase', letterSpacing: '0.7px',
     marginBottom: 8,
   }}>
@@ -250,7 +250,7 @@ const SectionLabel = ({ children }) => (
 );
 
 const Empty = () => (
-  <div style={{ padding: '40px 0', textAlign: 'center', color: '#cbd5e1', fontSize: 15 }}>
+  <div style={{ padding: '40px 0', textAlign: 'center', color: '#8B8F96', fontSize: 15 }}>
     Sin datos para los filtros actuales
   </div>
 );
@@ -258,8 +258,8 @@ const Empty = () => (
 const Nota = ({ children }) => (
   <div style={{
     padding: '14px 32px 24px',
-    fontSize: 12, color: '#94a3b8', lineHeight: 1.7,
-    borderTop: '1px solid #f1f5f9', marginTop: 8,
+    fontSize: 12, color: '#5E636D', lineHeight: 1.7,
+    borderTop: '1px solid #E7E3DA', marginTop: 8,
   }}>
     {children}
   </div>
@@ -376,7 +376,7 @@ const ModalEstadisticas = ({
     const supTotal = datosOrdenes.arr.reduce((s, o) => s + o.superficieNum, 0);
     return (
       <ModalShell onCerrar={onCerrar} contexto={contexto} titulo="Estadísticas · Órdenes de Exploración">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', borderBottom: '1px solid #f1f5f9' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', borderBottom: '1px solid #E7E3DA' }}>
           <KpiCell label="Órdenes"          value={datosOrdenes.arr.length} />
           <KpiCell label="Superficie total"  value={`${Number(supTotal.toFixed(0)).toLocaleString('es-MX')} ha`} />
           <KpiCell label="% de México"       value={`${((supTotal / SUPERFICIE_MEXICO_HA) * 100).toFixed(4)}%`} accent last />
@@ -409,7 +409,7 @@ const ModalEstadisticas = ({
   if (tipoElemento === 'areas_naturales') {
     return (
       <ModalShell onCerrar={onCerrar} contexto={contexto} titulo="Estadísticas · Áreas Naturales Protegidas">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', borderBottom: '1px solid #f1f5f9' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', borderBottom: '1px solid #E7E3DA' }}>
           <KpiCell label="Total ANPs"    value={kpisANP?.total ?? 0} />
           <KpiCell label="Municipios"    value={kpisANP?.municipios ?? 0} />
           <KpiCell label="Categorías"    value={kpisANP?.categorias ?? 0} />
@@ -455,7 +455,7 @@ const ModalEstadisticas = ({
   // ── Vista Concesiones ─────────────────────────────────────────────────────
   return (
     <ModalShell onCerrar={onCerrar} contexto={contexto} titulo="Estadísticas Mineras">
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', borderBottom: '1px solid #f1f5f9' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', borderBottom: '1px solid #E7E3DA' }}>
         <KpiCell label="Registros"    value={kpis.total.toLocaleString('es-MX')} />
         <KpiCell label="Vigentes"     value={kpis.vigentes.toLocaleString('es-MX')} />
         <KpiCell label="Municipios"   value={kpis.municipios} />
@@ -479,9 +479,9 @@ const ModalEstadisticas = ({
             style={{
               padding: '9px 22px', borderRadius: 9, border: 'none',
               fontSize: 13, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer',
-              background: vista === tab.id ? '#0f172a' : '#f1f5f9',
-              color:      vista === tab.id ? '#fff'    : '#64748b',
-              boxShadow:  vista === tab.id ? '0 2px 10px rgba(15,23,42,0.18)' : 'none',
+              background: vista === tab.id ? '#2F4858' : '#F8F7F4',
+              color:      vista === tab.id ? '#fff'    : '#5E636D',
+              boxShadow:  vista === tab.id ? '0 2px 10px rgba(47,72,88,0.18)' : 'none',
               transition: 'all 0.18s ease',
             }}
           >

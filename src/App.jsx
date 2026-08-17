@@ -102,6 +102,7 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding }) {
       if (selectedRegion)    datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => c.region === selectedRegion);
       if (selectedMunicipio) datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => c.municipio === selectedMunicipio);
       if (yearFilter)        datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => filtrarPorAnio(c, yearFilter));
+      if (selectedEstado)    datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => c.estado === selectedEstado);
     }
     if (activeSearchTerm.length > 2) {
       datosConcesionesFiltrados = datosConcesionesFiltrados.filter(c => buscarEnElemento(c, activeSearchTerm));

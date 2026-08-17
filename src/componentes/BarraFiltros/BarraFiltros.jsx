@@ -76,6 +76,16 @@ const BarraFiltros = memo(({
               <option key={anio} value={anio}>{anio}</option>
             ))}
           </select>
+
+          <select
+            value={estadoSeleccionado}
+            onChange={(e) => onCambiarEstado(e.target.value)}
+            className="filter-select filter-select-estado"
+          >
+            <option value="">Todos los estados</option>
+            <option value="Vigente">Vigente</option>
+            <option value="Cancelado">Cancelado</option>
+          </select>
         </div>
 
         {/* ── Búsqueda + botones (se expanden para llenar el espacio restante) ── */}

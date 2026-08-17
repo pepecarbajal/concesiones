@@ -84,14 +84,14 @@ export default function LandingPage({ onEnterMap }) {
         }
         .lp-btn:hover { transform:translateY(-2px); }
 
-        .lp-btn-concesiones { border-color:rgba(239,68,68,0.5); }
-        .lp-btn-concesiones:hover { background:rgba(239,68,68,0.2); border-color:#ef4444; }
+        .lp-btn-concesiones { border-color:rgba(47,72,88,0.95); }
+        .lp-btn-concesiones:hover { background:rgba(47,72,88,0.45); border-color:#2F4858; }
 
-        .lp-btn-ordenes { border-color:rgba(255,165,0,0.5); }
-        .lp-btn-ordenes:hover { background:rgba(255,165,0,0.2); border-color:#FFA500; }
+        .lp-btn-ordenes { border-color:rgba(169,129,43,0.95); }
+        .lp-btn-ordenes:hover { background:rgba(169,129,43,0.25); border-color:#A9812B; }
 
-        .lp-btn-anp { border-color:rgba(74,222,128,0.5); }
-        .lp-btn-anp:hover { background:rgba(74,222,128,0.2); border-color:#4ade80; }
+        .lp-btn-anp { border-color:rgba(30,123,79,0.95); }
+        .lp-btn-anp:hover { background:rgba(30,123,79,0.3); border-color:#1E7B4F; }
 
         .lp-center {
           position:absolute; inset:0; z-index:5;
@@ -107,7 +107,7 @@ export default function LandingPage({ onEnterMap }) {
           color:white; max-width:800px; margin:0;
         }
 
-        .lp-title strong { font-weight:700; color:#f0c060; }
+        .lp-title strong { font-weight:700; color:#C8A44A; }
 
         .lp-divider {
           width:48px; height:2px;
@@ -160,7 +160,7 @@ export default function LandingPage({ onEnterMap }) {
           font-weight:500; letter-spacing:0.08em;
         }
         .lp-live-dot {
-          width:6px; height:6px; border-radius:50%; background:#4ade80;
+          width:6px; height:6px; border-radius:50%; background:#2E9D63;
           animation:blink 2s ease infinite;
         }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }

@@ -34,25 +34,26 @@ export const NIVELES_ZOOM = {
 
 /**
  * Colores para los diferentes estados de concesiones
+ * Semántica tipo semáforo: Verde = Vigente, Ámbar = No vigente/Cancelada, Dorado = Orden de Exploración
  */
 export const COLORES_ESTADO = {
   vigente: {
-    primario: '#FF4444',
-    secundario: '#FF6666',
-    oscuro: '#CC0000'
+    primario: '#1E7B4F',
+    secundario: '#2E9D63',
+    oscuro: '#155A39'
   },
   noVigente: {
-    primario: '#999999',
-    secundario: '#AAAAAA',
-    oscuro: '#666666'
+    primario: '#B4691E',
+    secundario: '#CE8A3A',
+    oscuro: '#8A4F14'
   },
   ordenExploracion: {
-    primario: '#FFA500',    // Color principal
-    secundario: '#FFB733',  // Color secundario
-    oscuro: '#CC8400' 
+    primario: '#A9812B',    // Color principal (dorado)
+    secundario: '#C8A44A',  // Color secundario
+    oscuro: '#7E5F1E'
   },
   relleno: {
-    primario: '#FF401A'
+    primario: '#B4691E'
   }
 };
 

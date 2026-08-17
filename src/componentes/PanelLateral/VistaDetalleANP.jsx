@@ -3,14 +3,14 @@ import ControlesNavegacion from './componentes/ControlesNavegacion';
 import FilaInformacion from './componentes/FilaInformacion';
 
 const CATEGORIAS = {
-  'RB':   { nombre: 'Reserva de Biosfera',              color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
-  'PN':   { nombre: 'Parque Nacional',                  color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
-  'MN':   { nombre: 'Monumento Natural',                color: '#9333ea', bg: '#faf5ff', border: '#e9d5ff' },
-  'AP':   { nombre: 'Área de Protección',               color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
-  'SB':   { nombre: 'Santuario',                        color: '#0d9488', bg: '#f0fdfa', border: '#99f6e4' },
-  'SANT': { nombre: 'Santuario',                        color: '#0d9488', bg: '#f0fdfa', border: '#99f6e4' },
-  'FL':   { nombre: 'Área de Protección Flora y Fauna', color: '#db2777', bg: '#fdf2f8', border: '#fbcfe8' },
-  'APFF': { nombre: 'Área de Protección de Flora y Fauna', color: '#db2777', bg: '#fdf2f8', border: '#fbcfe8' },
+  'RB':   { nombre: 'Reserva de Biosfera',              color: '#1E7B4F', bg: '#E4F1EA', border: '#C4DECB' },
+  'PN':   { nombre: 'Parque Nacional',                  color: '#2F4858', bg: '#E9EEF1', border: '#CBD8DE' },
+  'MN':   { nombre: 'Monumento Natural',                color: '#5B4E6E', bg: '#EFECF2', border: '#DBD3E3' },
+  'AP':   { nombre: 'Área de Protección',               color: '#A9812B', bg: '#F5EEDB', border: '#E6D8B4' },
+  'SB':   { nombre: 'Santuario',                        color: '#1F6A5C', bg: '#E5F0ED', border: '#C6DDD6' },
+  'SANT': { nombre: 'Santuario',                        color: '#1F6A5C', bg: '#E5F0ED', border: '#C6DDD6' },
+  'FL':   { nombre: 'Área de Protección Flora y Fauna', color: '#8E4458', bg: '#F5ECEF', border: '#E4D0D6' },
+  'APFF': { nombre: 'Área de Protección de Flora y Fauna', color: '#8E4458', bg: '#F5ECEF', border: '#E4D0D6' },
 };
 
 const formatearFecha = (fechaISO) => {
@@ -38,17 +38,17 @@ const BtnDescargaPDF = ({ pdfUrl, nombreAnp, idAnp }) => {
         .btn-anp-pdf {
           display: flex; align-items: center; justify-content: center; gap: 8px;
           width: 100%; padding: 14px 20px;
-          background: linear-gradient(135deg, #166534 0%, #15803d 100%);
+          background: #166534;
           color: white; text-align: center; border-radius: 12px;
           text-decoration: none; font-weight: 600; font-size: 14px;
           transition: all 0.2s;
-          box-shadow: 0 4px 12px rgba(21, 128, 61, 0.3);
+          box-shadow: 0 4px 12px rgba(22, 101, 52, 0.3);
           border: none; cursor: pointer; font-family: inherit;
         }
         .btn-anp-pdf:hover {
           transform: translateY(-1px);
           box-shadow: 0 6px 18px rgba(21, 128, 61, 0.45);
-          background: linear-gradient(135deg, #14532d 0%, #166534 100%);
+          background: #14532d;
         }
         .btn-anp-pdf:active { transform: translateY(0); }
         .btn-anp-pdf-wrap { margin-top: 20px; }
@@ -148,15 +148,15 @@ const VistaDetalleANP = ({
               {formatearSuperficie(anp.SUPERFICIE)}
             </div>
           </div>
-          <div className="anp-sup-card" style={{ borderColor: '#bbf7d0', background: '#f0fdf4' }}>
-            <div className="anp-sup-label" style={{ color: '#16a34a' }}>Terrestre</div>
+          <div className="anp-sup-card" style={{ borderColor: '#C4DECB', background: '#E4F1EA' }}>
+            <div className="anp-sup-label" style={{ color: '#1E7B4F' }}>Terrestre</div>
             <div className="anp-sup-valor" style={{ color: '#166534' }}>
               {formatearSuperficie(anp.S_TERRES)}
             </div>
           </div>
           {tieneSupMarina && (
-            <div className="anp-sup-card" style={{ borderColor: '#bfdbfe', background: '#eff6ff' }}>
-              <div className="anp-sup-label" style={{ color: '#2563eb' }}>Marina</div>
+            <div className="anp-sup-card" style={{ borderColor: '#CBD8DE', background: '#E9EEF1' }}>
+              <div className="anp-sup-label" style={{ color: '#2F4858' }}>Marina</div>
               <div className="anp-sup-valor" style={{ color: '#1d4ed8' }}>
                 {formatearSuperficie(anp.S_MARINA)}
               </div>
@@ -177,7 +177,7 @@ const VistaDetalleANP = ({
             <div className="date-card">
               <span className="date-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  stroke="#1E7B4F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                   <line x1="16" y1="2" x2="16" y2="6"/>
                   <line x1="8"  y1="2" x2="8"  y2="6"/>
@@ -192,7 +192,7 @@ const VistaDetalleANP = ({
             <div className="date-card">
               <span className="date-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  stroke="#A9812B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/>
                   <line x1="12" y1="8"  x2="12"   y2="12"/>
                   <line x1="12" y1="16" x2="12.01" y2="16"/>

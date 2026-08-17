@@ -5,7 +5,7 @@
  */
 export const crearContenidoPopup = (elemento) => {
   const esOrden = elemento.tipo === 'orden_exploracion';
-  const colorBorde = esOrden ? '#FFA500' : '#667eea';
+  const colorBorde = esOrden ? '#A9812B' : '#2F4858';
   
   return `
     <div style="

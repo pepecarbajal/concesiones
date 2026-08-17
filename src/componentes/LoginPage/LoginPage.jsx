@@ -104,7 +104,7 @@ export default function LoginPage({ onLoginExitoso }) {
         @keyframes lpSlideUp{from{opacity:0;transform:translateY(28px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
         .lp-login-card.shake{animation:lpShake 0.45s cubic-bezier(0.36,0.07,0.19,0.97)}
         @keyframes lpShake{0%,100%{transform:translateX(0)}15%{transform:translateX(-8px)}30%{transform:translateX(8px)}45%{transform:translateX(-6px)}60%{transform:translateX(6px)}75%{transform:translateX(-3px)}90%{transform:translateX(3px)}}
-        .lp-login-icon { width:56px;height:56px;margin:0 auto 20px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(102,126,234,0.4); }
+        .lp-login-icon { width:56px;height:56px;margin:0 auto 20px;background:#2F4858;border-radius:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(47,72,88,0.4); }
         .lp-login-icon.bloqueado { background:linear-gradient(135deg,#dc2626 0%,#991b1b 100%);box-shadow:0 8px 24px rgba(220,38,38,0.4); }
         .lp-login-title { font-family:'Merriweather',serif;font-size:1.35rem;font-weight:700;color:white;text-align:center;margin:0 0 6px;line-height:1.3; }
         .lp-login-sub { font-family:'Inter',sans-serif;font-size:13px;font-weight:400;color:rgba(255,255,255,0.45);text-align:center;margin:0 0 32px;line-height:1.5; }
@@ -112,7 +112,7 @@ export default function LoginPage({ onLoginExitoso }) {
         .lp-login-input-wrap { position:relative;margin-bottom:20px; }
         .lp-login-input { width:100%;padding:13px 44px 13px 16px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.14);border-radius:12px;color:white;font-family:'Inter',sans-serif;font-size:15px;font-weight:500;outline:none;transition:border-color 0.2s,background 0.2s,box-shadow 0.2s;letter-spacing:0.05em; }
         .lp-login-input::placeholder{color:rgba(255,255,255,0.22);}
-        .lp-login-input:focus{border-color:rgba(102,126,234,0.7);background:rgba(255,255,255,0.1);box-shadow:0 0 0 3px rgba(102,126,234,0.18);}
+        .lp-login-input:focus{border-color:rgba(47,72,88,0.7);background:rgba(255,255,255,0.1);box-shadow:0 0 0 3px rgba(47,72,88,0.18);}
         .lp-login-input.error-state{border-color:rgba(239,68,68,0.7);background:rgba(239,68,68,0.07);box-shadow:0 0 0 3px rgba(239,68,68,0.15);}
         .lp-login-eye{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.35);padding:2px;display:flex;align-items:center;transition:color 0.2s;}
         .lp-login-eye:hover{color:rgba(255,255,255,0.7);}
@@ -120,8 +120,8 @@ export default function LoginPage({ onLoginExitoso }) {
         .lp-login-bloqueado{display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);border-radius:12px;margin-bottom:16px;text-align:center;}
         .lp-login-bloqueado-tiempo{font-family:'Merriweather',serif;font-size:2rem;font-weight:700;color:#fca5a5;letter-spacing:0.05em;}
         .lp-login-bloqueado-texto{font-family:'Inter',sans-serif;font-size:12px;color:rgba(252,165,165,0.75);line-height:1.5;}
-        .lp-login-btn{width:100%;padding:14px 20px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border:none;border-radius:12px;color:white;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.02em;box-shadow:0 6px 20px rgba(102,126,234,0.4);transition:transform 0.2s,box-shadow 0.2s,opacity 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;}
-        .lp-login-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 28px rgba(102,126,234,0.5);}
+        .lp-login-btn{width:100%;padding:14px 20px;background:#2F4858;border:none;border-radius:12px;color:white;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.02em;box-shadow:0 6px 20px rgba(47,72,88,0.4);transition:transform 0.2s,box-shadow 0.2s,opacity 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+        .lp-login-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 28px rgba(47,72,88,0.5);}
         .lp-login-btn:disabled{opacity:0.5;cursor:not-allowed;}
         .lp-login-spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:lpSpin 0.7s linear infinite;}
         @keyframes lpSpin{to{transform:rotate(360deg)}}
