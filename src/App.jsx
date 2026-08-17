@@ -46,7 +46,7 @@ const buscarEnElemento = (elemento, termino) => {
 };
 
 // ── MapaApp ───────────────────────────────────────────────────────────────────
-function MapaApp({ tipoInicial, visible, onRegresarLanding }) {
+function MapaApp({ tipoInicial, visible, onRegresarLanding, onLogout }) {
   const [selectedEstado, setSelectedEstado]       = useState('');
   const [selectedRegion, setSelectedRegion]       = useState('');
   const [selectedMunicipio, setSelectedMunicipio] = useState('');
@@ -209,6 +209,14 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding }) {
         <div className="app-header-brand">
           <h1 className="app-header-title">Información Minera del Estado de Guerrero</h1>
         </div>
+        <div className="app-header-actions">
+          <button className="btn-salir" onClick={onLogout} title="Cerrar sesión">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+            </svg>
+            <span className="btn-salir-label">Salir</span>
+          </button>
+        </div>
       </header>
 
       {/* En móvil, el botón de filtros solo aparece en la vista de concesiones */}
@@ -316,6 +324,11 @@ function App() {
     setTimeout(() => { setView('landing'); setTransitioning(false); }, 500);
   }, []);
 
+  const handleLogout = useCallback(async () => {
+    try { await fetch('/api/logout', { credentials: 'same-origin' }); } catch { /* ignorar */ }
+    setView('login'); setMapaListo(false);
+  }, []);
+
   return (
     <>
       <style>{`
@@ -325,20 +338,26 @@ function App() {
           opacity: 0; transition: opacity 0.5s ease;
         }
         .view-transition.active { opacity: 1; }
-        .btn-regresar {
+        .btn-regresar, .btn-salir {
           display: flex; align-items: center; gap: 6px;
-          padding: 7px 14px; background: rgba(255,255,255,0.12);
-          border: 1px solid rgba(255,255,255,0.25); border-radius: 9px;
-          color: white; font-size: 13px; font-weight: 600; font-family: inherit;
+          padding: 7px 14px; background: var(--acento-claro);
+          border: 1px solid var(--hairline); border-radius: 9px;
+          color: var(--acento-oscuro); font-size: 13px; font-weight: 600; font-family: inherit;
           cursor: pointer; white-space: nowrap; flex-shrink: 0;
           transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
         }
-        .btn-regresar:hover { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.45); transform: translateX(-2px); }
+        .btn-regresar:hover { background: var(--superficie); border-color: #D7DEE3; transform: translateX(-2px); }
         .btn-regresar svg { flex-shrink: 0; transition: transform 0.2s ease; }
         .btn-regresar:hover svg { transform: translateX(-2px); }
+        .app-header-actions { margin-left: auto; display: flex; align-items: center; flex-shrink: 0; }
+        .btn-salir { color: var(--tinta-2); }
+        .btn-salir:hover {
+          background: rgba(220, 38, 38, 0.07); border-color: rgba(220, 38, 38, 0.3);
+          color: #B91C1C; transform: translateY(-1px);
+        }
         @media (max-width: 768px) {
-          .btn-regresar-label { display: none; }
-          .btn-regresar { padding: 7px 10px; }
+          .btn-regresar-label, .btn-salir-label { display: none; }
+          .btn-regresar, .btn-salir { padding: 7px 10px; }
         }
         .panel-btn-estadisticas {
           display: flex; align-items: center; justify-content: center; gap: 7px;
@@ -364,6 +383,7 @@ function App() {
           tipoInicial={tipoInicial}
           visible={view === 'map'}
           onRegresarLanding={handleRegresarLanding}
+          onLogout={handleLogout}
         />
       )}
     </>
