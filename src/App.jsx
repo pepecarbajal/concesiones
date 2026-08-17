@@ -109,7 +109,7 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding }) {
       datosOrdenesFiltrados     = datosOrdenesFiltrados.filter(o => buscarEnElemento(o, activeSearchTerm));
     }
     return [...datosConcesionesFiltrados, ...datosOrdenesFiltrados];
-  }, [selectedRegion, selectedMunicipio, activeSearchTerm, yearFilter, tipoElemento]);
+  }, [selectedRegion, selectedMunicipio, activeSearchTerm, yearFilter, selectedEstado, tipoElemento]);
 
   useEffect(() => { setCurrentIndex(0); }, [filteredConcesiones.length]);
 
@@ -147,7 +147,7 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding }) {
     if (tipo !== 'areas_naturales') setAnpSeleccionada(null);
     // Limpiar filtros al cambiar de sección
     setSelectedRegion(''); setSelectedMunicipio(''); setYearFilter('');
-    setSearchTerm(''); setActiveSearchTerm('');
+    setSelectedEstado(''); setSearchTerm(''); setActiveSearchTerm('');
   }, []);
 
   const manejarSeleccionElemento = useCallback((elemento) => {

@@ -1048,6 +1048,7 @@ html, body {
   .filter-select          { min-width: 130px; padding: 9px 10px; font-size: 12px; }
   .filter-select-municipio{ min-width: 145px; }
   .filter-select-year     { min-width: 115px; }
+  .filter-select-estado   { min-width: 115px; }
 
   .search-input { font-size: 12px; padding: 9px 32px 9px 12px; }
 
@@ -1131,7 +1132,8 @@ html, body {
 
   .filter-select,
   .filter-select-municipio,
-  .filter-select-year { width: 100%; min-width: 100%; }
+  .filter-select-year,
+  .filter-select-estado { width: 100%; min-width: 100%; }
 
   .search-wrapper { width: 100%; }
   .search-input   { width: 100%; min-width: 100%; }
@@ -1874,6 +1876,10 @@ html, body {
     min-width: 120px;
   }
 
+  .filter-select-estado {
+    min-width: 120px;
+  }
+
   .search-input {
     font-size: 12px;
     padding: 8px 32px 8px 12px;
@@ -1992,6 +1998,10 @@ html, body {
   }
 
   .filter-select-year {
+    min-width: 128px;
+  }
+
+  .filter-select-estado {
     min-width: 128px;
   }
 
