@@ -142,6 +142,12 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding, onLogout }) {
     setSearchTerm(''); setActiveSearchTerm(''); setSelectedConcesion(null);
   }, []);
 
+  const limpiarTodosLosFiltros = useCallback(() => {
+    setSelectedEstado(''); setSelectedRegion(''); setSelectedMunicipio('');
+    setYearFilter(''); setSearchTerm(''); setActiveSearchTerm('');
+    setSelectedConcesion(null);
+  }, []);
+
   const manejarCambiarTipo = useCallback((tipo) => {
     setTipoElemento(tipo); setSelectedConcesion(null); setCurrentIndex(0);
     if (tipo !== 'areas_naturales') setAnpSeleccionada(null);
@@ -197,6 +203,8 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding, onLogout }) {
     return Array.from(anios).sort().reverse();
   }, []);
 
+  const hayFiltrosActivos = !!(selectedEstado || selectedRegion || selectedMunicipio || yearFilter || activeSearchTerm);
+
   return (
     <div className="app-container" style={{ display: visible ? 'block' : 'none' }}>
       <header className="app-header">
@@ -250,6 +258,7 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding, onLogout }) {
         municipioSeleccionado={selectedMunicipio}
         filtroAnio={yearFilter}
         terminoBusqueda={searchTerm}
+        terminoBusquedaActivo={activeSearchTerm}
         regionesDisponibles={REGIONES_UNICAS}
         municipiosDisponibles={obtenerMunicipiosFiltrados}
         aniosDisponibles={obtenerAniosUnicos}
@@ -260,6 +269,7 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding, onLogout }) {
         onCambiarBusqueda={manejarBusqueda}
         onActivarBusqueda={manejarActivarBusqueda}
         onLimpiarBusqueda={manejarLimpiarBusqueda}
+        onLimpiarTodo={limpiarTodosLosFiltros}
         elementosFiltrados={filteredConcesiones}
       />
 
@@ -282,6 +292,8 @@ function MapaApp({ tipoInicial, visible, onRegresarLanding, onLogout }) {
         onNavegarAnterior={navegarAnterior}
         onNavegarSiguiente={navegarSiguiente}
         onMostrarEstadisticas={() => setModalEstadisticasVisible(true)}
+        hayFiltrosActivos={hayFiltrosActivos}
+        onLimpiarFiltros={limpiarTodosLosFiltros}
       />
 
       {modalEstadisticasVisible && (

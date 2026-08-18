@@ -404,6 +404,99 @@ html, body {
   border: 1px solid var(--hairline);
 }
 
+/* ========================================
+   CHIPS DE FILTROS ACTIVOS
+   ======================================== */
+.filters-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 6px;
+  background: var(--superficie);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  box-shadow: var(--sombra-suave);
+  animation: chipsAparecer 0.25s ease;
+}
+
+@keyframes chipsAparecer {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 11px;
+  background: var(--acento-claro);
+  border: 1px solid #DCE3E8;
+  border-radius: 20px;
+  color: var(--tinta-1);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  max-width: 280px;
+}
+
+.filter-chip:hover {
+  border-color: var(--acento);
+  background: #E0E8ED;
+}
+
+.filter-chip-label {
+  text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--tinta-3);
+  flex-shrink: 0;
+}
+
+.filter-chip-valor {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.filter-chip > span[aria-hidden] {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--tinta-3);
+}
+
+.filter-chip:hover > span[aria-hidden] {
+  color: var(--acento);
+}
+
+.filter-chip-limpiar {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  background: transparent;
+  border: 1px dashed #CFC9BC;
+  border-radius: 20px;
+  color: var(--tinta-2);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-left: 2px;
+}
+
+.filter-chip-limpiar:hover {
+  border-color: rgba(220, 38, 38, 0.4);
+  color: #B91C1C;
+  background: rgba(220, 38, 38, 0.05);
+}
+
 /* Grupo izquierdo: los 4 selects, no crecen */
 .filters-selects {
   display: flex;
@@ -969,6 +1062,65 @@ html, body {
   background-color: var(--papel);
   border-radius: 8px;
   font-weight: 500;
+}
+
+/* ========================================
+   ESTADO VACÍO (sin resultados)
+   ======================================== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 40px 20px;
+  animation: chipsAparecer 0.25s ease;
+}
+
+.empty-state-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--acento-claro);
+  color: var(--acento);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.empty-state h3 {
+  font-family: var(--fuente-display);
+  font-size: 15px;
+  color: var(--tinta-1);
+  margin: 0;
+}
+
+.empty-state p {
+  font-size: 12.5px;
+  color: var(--tinta-2);
+  margin: 0 0 8px;
+  line-height: 1.55;
+}
+
+.empty-state-btn {
+  padding: 8px 16px;
+  background: var(--acento);
+  color: white;
+  border: none;
+  border-radius: var(--radio-sm);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 3px 10px rgba(47, 72, 88, 0.25);
+}
+
+.empty-state-btn:hover {
+  background: var(--acento-oscuro);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(47, 72, 88, 0.32);
 }
 
 /* ========================================

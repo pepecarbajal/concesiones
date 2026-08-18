@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, memo } from 'react';
+import React, { useRef, useEffect, useCallback, memo, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { COORDENADAS_REGIONES, NIVELES_ZOOM, LIMITES_VISUALIZACION } from '../../utilidades/constantes';
@@ -142,6 +142,98 @@ const cerrarTodosLosPopups = (popupCoordenadas, popupANP) => {
     popupANP.current.remove();
     popupANP.current = null;
   }
+};
+
+// ── Leyenda de capas (colapsable) ──────────────────────────────────────────
+const LEYENDA_ITEMS = {
+  concesiones: [
+    { color: '#1E7B4F', label: 'Vigente' },
+    { color: '#B4691E', label: 'No vigente / Cancelada' },
+    { color: '#A9812B', label: 'Orden de exploración' },
+  ],
+  ordenes: [
+    { color: '#A9812B', label: 'Orden de exploración' },
+  ],
+  areas_naturales: [
+    { color: '#1E7B4F', label: 'Reserva de Biosfera' },
+    { color: '#2F4858', label: 'Parque Nacional' },
+    { color: '#5B4E6E', label: 'Monumento Natural' },
+    { color: '#A9812B', label: 'Área de Protección' },
+    { color: '#1F6A5C', label: 'Santuario' },
+    { color: '#8E4458', label: 'Flora y Fauna' },
+  ],
+};
+
+const LeyendaMapa = ({ tipoElemento }) => {
+  const [abierta, setAbierta] = useState(true);
+  const items = LEYENDA_ITEMS[tipoElemento] || LEYENDA_ITEMS.concesiones;
+
+  return (
+    <>
+      <style>{`
+        .mapa-leyenda {
+          position: absolute; bottom: 26px; right: 16px; z-index: 12;
+          background: var(--superficie); border: 1px solid var(--hairline);
+          border-radius: var(--radio-md); box-shadow: var(--sombra-media);
+          min-width: 190px; max-width: 230px; overflow: hidden;
+          font-family: var(--fuente-ui);
+        }
+        .mapa-leyenda-toggle {
+          display: flex; align-items: center; justify-content: space-between; gap: 10px;
+          width: 100%; padding: 8px 12px; background: var(--acento-claro);
+          border: none; cursor: pointer; font-family: inherit;
+          font-size: 11px; font-weight: 700; color: var(--acento-oscuro);
+          text-transform: uppercase; letter-spacing: 0.08em;
+        }
+        .mapa-leyenda-toggle:hover { background: #E3E9ED; }
+        .mapa-leyenda-toggle svg { color: var(--acento); transition: transform 0.2s ease; flex-shrink: 0; }
+        .mapa-leyenda-toggle.abierta svg { transform: rotate(180deg); }
+        .mapa-leyenda-items {
+          padding: 9px 12px; display: flex; flex-direction: column; gap: 7px;
+          max-height: 190px; overflow-y: auto;
+        }
+        .mapa-leyenda-items::-webkit-scrollbar { width: 4px; }
+        .mapa-leyenda-items::-webkit-scrollbar-thumb { background: var(--hairline); border-radius: 4px; }
+        .mapa-leyenda-item {
+          display: flex; align-items: center; gap: 8px;
+          font-size: 12px; font-weight: 500; color: var(--tinta-1);
+        }
+        .mapa-leyenda-dot {
+          width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0;
+          box-shadow: 0 1px 3px rgba(32,36,46,0.25);
+        }
+        @media (max-width: 768px) {
+          .mapa-leyenda { right: 10px; bottom: 74px; min-width: 170px; }
+          .mapa-leyenda-item { font-size: 11px; }
+        }
+      `}</style>
+
+      <div className="mapa-leyenda">
+        <button
+          type="button"
+          className={`mapa-leyenda-toggle ${abierta ? 'abierta' : ''}`}
+          onClick={() => setAbierta(v => !v)}
+          aria-expanded={abierta}
+        >
+          <span>Leyenda</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+
+        {abierta && (
+          <div className="mapa-leyenda-items">
+            {items.map(item => (
+              <div key={item.label} className="mapa-leyenda-item">
+                <span className="mapa-leyenda-dot" style={{ background: item.color }} />
+                {item.label}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  );
 };
 
 // ============================================================================
@@ -478,7 +570,12 @@ const Mapa = memo(({
     }
   }, [elementosFiltrados, onSeleccionarElemento, municipioSeleccionado, regionSeleccionada, terminoBusqueda]);
 
-  return <div ref={contenedorMapa} className="map-container" />;
+  return (
+    <>
+      <div ref={contenedorMapa} className="map-container" />
+      <LeyendaMapa tipoElemento={tipoElemento} />
+    </>
+  );
 });
 
 Mapa.displayName = 'Mapa';

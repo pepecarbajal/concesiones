@@ -178,7 +178,9 @@ const VistaLista = memo(({
   totalConcesiones,
   totalOrdenes,
   totalANPs,
-  onMostrarEstadisticas
+  onMostrarEstadisticas,
+  hayFiltrosActivos,
+  onLimpiarFiltros
 }) => {
   const estadisticas = useMemo(() => {
     const totalElementos     = elementos.length;
@@ -244,25 +246,47 @@ const VistaLista = memo(({
             <TarjetaEstadistica icono="area"     etiqueta="Superficie"  valor={`${estadisticas.superficieTotal} ha`} color="color-orange" pequeno />
           </div>
           <div>
-            <h3 className="concesiones-list-header">
-              {estadisticas.totalElementos > 0
-                ? `Elementos visibles (${estadisticas.totalElementos})`
-                : 'No hay elementos que mostrar'}
-            </h3>
-            <div className="concesiones-list">
-              {elementosMostrados.map(elemento => (
-                <ElementoLista
-                  key={elemento.tipo === 'orden_exploracion' ? elemento.num_orden : elemento.titulo}
-                  elemento={elemento}
-                  onClick={manejarClickElemento}
-                />
-              ))}
-              {hayMasElementos && (
-                <div className="list-footer">
-                  Mostrando {LIMITES_VISUALIZACION.maximoElementosLista} de {estadisticas.totalElementos} elementos
+            {estadisticas.totalElementos > 0 ? (
+              <>
+                <h3 className="concesiones-list-header">
+                  Elementos visibles ({estadisticas.totalElementos})
+                </h3>
+                <div className="concesiones-list">
+                  {elementosMostrados.map(elemento => (
+                    <ElementoLista
+                      key={elemento.tipo === 'orden_exploracion' ? elemento.num_orden : elemento.titulo}
+                      elemento={elemento}
+                      onClick={manejarClickElemento}
+                    />
+                  ))}
+                  {hayMasElementos && (
+                    <div className="list-footer">
+                      Mostrando {LIMITES_VISUALIZACION.maximoElementosLista} de {estadisticas.totalElementos} elementos
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </>
+            ) : (
+              <div className="empty-state">
+                <div className="empty-state-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.35-4.35" />
+                    <line x1="8" y1="11" x2="14" y2="11" />
+                  </svg>
+                </div>
+                <h3>Sin resultados</h3>
+                <p>
+                  No se encontraron elementos con los filtros aplicados.
+                  <br />Prueba con otro término o revisa los filtros.
+                </p>
+                {hayFiltrosActivos && (
+                  <button type="button" className="empty-state-btn" onClick={onLimpiarFiltros}>
+                    Limpiar filtros
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
