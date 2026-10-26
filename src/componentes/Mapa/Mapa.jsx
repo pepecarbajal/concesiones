@@ -12,6 +12,12 @@ import {
   quitarResaltadoPoligonos,
   ajustarVistaAPoligono
 } from './utilidades/gestorPoligonos';
+import {
+  agregarCapaConcesiones,
+  actualizarCapaConcesiones,
+  configurarEventosConcesiones,
+  CONCESIONES_FILL_ID
+} from './utilidades/capaConcesiones';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -166,6 +172,18 @@ const Mapa = memo(({
   const poligonosInicializados      = useRef(false);
   const ultimoElementoSeleccionado  = useRef(null);
   const ultimaANPSeleccionada       = useRef(null);
+  // Refs para que los eventos registrados una sola vez en 'load' vean datos actuales
+  const elementosRef                = useRef(elementosFiltrados);
+  const onSeleccionarRef            = useRef(onSeleccionarElemento);
+  const seleccionadoRef             = useRef(elementoSeleccionado);
+  elementosRef.current     = elementosFiltrados;
+  onSeleccionarRef.current = onSeleccionarElemento;
+  seleccionadoRef.current  = elementoSeleccionado;
+
+  const tituloSeleccionado = () => {
+    const sel = seleccionadoRef.current;
+    return sel && sel.tipo !== 'orden_exploracion' ? sel.titulo : null;
+  };
 
   // ── Capas ANP (tileset vectorial) ──
   const agregarCapasANP = useCallback(() => {
@@ -254,12 +272,22 @@ const Mapa = memo(({
       agregarCapasANP();
       configurarEventosANP();
 
+      // ── Polígonos de concesiones mineras ──
+      agregarCapaConcesiones(mapa.current);
+      configurarEventosConcesiones(mapa.current, (titulo) => {
+        const concesion = elementosRef.current.find(e =>
+          e.tipo !== 'orden_exploracion' && Number(e.titulo) === titulo
+        );
+        if (concesion) onSeleccionarRef.current(concesion);
+      });
+      actualizarCapaConcesiones(mapa.current, elementosRef.current, tituloSeleccionado());
+
       // ── Cerrar todos los popups al hacer clic en área vacía del mapa ──
       mapa.current.on('click', (e) => {
         // Si el clic fue sobre una capa interactiva (ANP fill o polígono orden),
         // esos handlers ya se encargaron; aquí solo actuamos en clics "libres".
         const featuresBajoClick = mapa.current.queryRenderedFeatures(e.point, {
-          layers: [ANP_FILL_ID, 'ordenes-poligonos-relleno'].filter(id => {
+          layers: [ANP_FILL_ID, 'ordenes-poligonos-relleno', CONCESIONES_FILL_ID].filter(id => {
             try { return !!mapa.current.getLayer(id); } catch { return false; }
           })
         });
@@ -400,7 +428,11 @@ const Mapa = memo(({
   }, [mostrarPopupCoordenadas]);
 
   useEffect(() => {
-    if (!elementoSeleccionado) { ultimoElementoSeleccionado.current = null; return; }
+    if (!elementoSeleccionado) {
+      ultimoElementoSeleccionado.current = null;
+      if (mapa.current) actualizarCapaConcesiones(mapa.current, elementosRef.current, null);
+      return;
+    }
     const esOrden  = elementoSeleccionado.tipo === 'orden_exploracion';
     const idActual = esOrden ? elementoSeleccionado.num_orden : elementoSeleccionado.titulo;
     const ultimoId = ultimoElementoSeleccionado.current
@@ -409,6 +441,7 @@ const Mapa = memo(({
           : ultimoElementoSeleccionado.current.titulo)
       : null;
     if (idActual !== ultimoId) {
+      if (mapa.current) actualizarCapaConcesiones(mapa.current, elementosRef.current, esOrden ? null : idActual);
       navegarAElemento(elementoSeleccionado);
       ultimoElementoSeleccionado.current = elementoSeleccionado;
     }
@@ -443,6 +476,7 @@ const Mapa = memo(({
 
     if (poligonosInicializados.current) {
       actualizarPoligonos(mapa.current, elementosFiltrados);
+      actualizarCapaConcesiones(mapa.current, elementosFiltrados, tituloSeleccionado());
     }
 
     const nuevosMarcadores = elementosFiltrados.map(elemento => {
