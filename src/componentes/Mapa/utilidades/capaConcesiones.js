@@ -25,6 +25,15 @@ const USA_TILESET  = Boolean(TILESET && SOURCE_LAYER);
 // El título puede venir como texto o número según cómo se subió el archivo
 const TITULO = ['to-number', ['get', CAMPO_TITULO], -1];
 
+// Títulos que tienen polígono. Con el tileset de Mapbox no se conoce la lista,
+// así que se asume que todos lo tienen.
+const TITULOS_CON_POLIGONO = USA_TILESET
+  ? null
+  : new Set(poligonosLocales.features.map(f => Number(f.properties.titulo)));
+
+export const tienePoligono = (titulo) =>
+  TITULOS_CON_POLIGONO === null || TITULOS_CON_POLIGONO.has(Number(titulo));
+
 const primeraCapaDeEtiquetas = (mapa) =>
   mapa.getStyle()?.layers?.find(l => l.type === 'symbol')?.id;
 

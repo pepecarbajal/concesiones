@@ -16,6 +16,7 @@ import {
   agregarCapaConcesiones,
   actualizarCapaConcesiones,
   configurarEventosConcesiones,
+  tienePoligono,
   CONCESIONES_FILL_ID
 } from './utilidades/capaConcesiones';
 
@@ -316,6 +317,9 @@ const Mapa = memo(({
     });
     mapa.current.on('click', ANP_FILL_ID, (e) => {
       if (!e.features || e.features.length === 0) return;
+      // Si el clic cae en el polígono de una concesión, manda la concesión
+      if (mapa.current.getLayer(CONCESIONES_FILL_ID) &&
+          mapa.current.queryRenderedFeatures(e.point, { layers: [CONCESIONES_FILL_ID] }).length > 0) return;
       // Cerrar popup de coordenadas si está abierto
       if (popupCoordenadas.current) {
         popupCoordenadas.current.remove();
@@ -571,7 +575,12 @@ const Mapa = memo(({
       actualizarCapaConcesiones(mapa.current, elementosFiltrados, tituloSeleccionado());
     }
 
-    const nuevosMarcadores = elementosFiltrados.map(elemento => {
+    // Las concesiones se seleccionan con clic en su polígono; solo llevan marcador
+    // las órdenes de exploración y las concesiones sin polígono (canceladas)
+    const conMarcador = elementosFiltrados.filter(e =>
+      e.tipo === 'orden_exploracion' || !tienePoligono(e.titulo)
+    );
+    const nuevosMarcadores = conMarcador.map(elemento => {
       const elementoDOM = elemento.tipo === 'orden_exploracion'
         ? crearMarcadorOrden()
         : crearMarcadorConcesion(elemento.estado);
