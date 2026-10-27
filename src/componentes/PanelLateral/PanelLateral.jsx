@@ -21,7 +21,9 @@ const PanelLateral = ({
   onDeseleccionar,
   onNavegarAnterior,
   onNavegarSiguiente,
-  onMostrarEstadisticas
+  onMostrarEstadisticas,
+  hayFiltrosActivos,
+  onLimpiarFiltros
 }) => {
   const [anpSeleccionada, setAnpSeleccionada] = useState(null);
   const [indiceANP, setIndiceANP] = useState(0);
@@ -102,6 +104,8 @@ const PanelLateral = ({
           totalOrdenes={totalOrdenes}
           totalANPs={totalANPs}
           onMostrarEstadisticas={onMostrarEstadisticas}
+          hayFiltrosActivos={hayFiltrosActivos}
+          onLimpiarFiltros={onLimpiarFiltros}
         />
       )}
     </div>

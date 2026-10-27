@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, memo } from 'react';
+import React, { useRef, useEffect, useCallback, memo, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { COORDENADAS_REGIONES, NIVELES_ZOOM, LIMITES_VISUALIZACION } from '../../utilidades/constantes';
@@ -28,12 +28,12 @@ const ANP_FILL_ID      = 'anp-fill';
 const ANP_LINE_ID      = 'anp-line';
 
 const CAT_COLORES = {
-  'RB': { primario: '#16a34a', oscuro: '#14532d' },
-  'PN': { primario: '#2563eb', oscuro: '#1e3a8a' },
-  'MN': { primario: '#9333ea', oscuro: '#581c87' },
-  'AP': { primario: '#d97706', oscuro: '#92400e' },
-  'SB': { primario: '#0d9488', oscuro: '#134e4a' },
-  'FL': { primario: '#db2777', oscuro: '#831843' },
+  'RB': { primario: '#1E7B4F', oscuro: '#155A39' },
+  'PN': { primario: '#2F4858', oscuro: '#1D3341' },
+  'MN': { primario: '#5B4E6E', oscuro: '#3E344E' },
+  'AP': { primario: '#A9812B', oscuro: '#7E5F1E' },
+  'SB': { primario: '#1F6A5C', oscuro: '#114A40' },
+  'FL': { primario: '#8E4458', oscuro: '#6E3243' },
 };
 
 const formatearFecha = (fechaISO) => {
@@ -60,7 +60,7 @@ const crearPopupANP = (props) => {
   const primDec    = formatearFecha(props.PCM1 || props.PRIM_DEC);
   const idAnp      = props.ID_ANP     || 'N/D';
 
-  const colorCategoria = CAT_COLORES[catManejo]?.primario || '#6b7280';
+  const colorCategoria = CAT_COLORES[catManejo]?.primario || '#5E636D';
 
   const nombreCategoria = {
     'RB': 'Reserva de Biosfera',   'PN': 'Parque Nacional',
@@ -70,7 +70,7 @@ const crearPopupANP = (props) => {
 
   return `
     <div style="padding:0;background:white;border-radius:12px;min-width:280px;max-width:320px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow:hidden;">
-      <div style="background:linear-gradient(135deg,#166534 0%,#15803d 100%);padding:14px 16px 12px;">
+      <div style="background:#166534;padding:14px 16px 12px;">
         <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.18);border-radius:20px;padding:3px 10px;margin-bottom:8px;">
           <span style="width:8px;height:8px;background:${colorCategoria};border-radius:50%;display:inline-block;box-shadow:0 0 6px ${colorCategoria};"></span>
           <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.9);letter-spacing:0.4px;">${nombreCategoria}</span>
@@ -80,12 +80,12 @@ const crearPopupANP = (props) => {
       </div>
       <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px;text-align:center;">
-            <div style="font-size:10px;color:#16a34a;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:3px;">Superficie</div>
+          <div style="background:#E4F1EA;border:1px solid #C4DECB;border-radius:8px;padding:10px;text-align:center;">
+            <div style="font-size:10px;color:#1E7B4F;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:3px;">Superficie</div>
             <div style="font-size:12px;font-weight:800;color:#166534;">${superficie}</div>
           </div>
-          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px;text-align:center;">
-            <div style="font-size:10px;color:#16a34a;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:3px;">Región</div>
+          <div style="background:#E4F1EA;border:1px solid #C4DECB;border-radius:8px;padding:10px;text-align:center;">
+            <div style="font-size:10px;color:#1E7B4F;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:3px;">Región</div>
             <div style="font-size:11px;font-weight:700;color:#166534;line-height:1.3;">${region}</div>
           </div>
         </div>
@@ -113,7 +113,7 @@ const crearPopupANP = (props) => {
 
 // ── Crea el marcador DOM para un ANP con color según su categoría ──────────
 const crearMarcadorANPDOM = (catManejo) => {
-  const colores = CAT_COLORES[catManejo] || { primario: '#15803d', oscuro: '#14532d' };
+  const colores = CAT_COLORES[catManejo] || { primario: '#166534', oscuro: '#155A39' };
   const { primario, oscuro } = colores;
 
   const el = document.createElement('div');
@@ -148,6 +148,98 @@ const cerrarTodosLosPopups = (popupCoordenadas, popupANP) => {
     popupANP.current.remove();
     popupANP.current = null;
   }
+};
+
+// ── Leyenda de capas (colapsable) ──────────────────────────────────────────
+const LEYENDA_ITEMS = {
+  concesiones: [
+    { color: '#1E7B4F', label: 'Vigente' },
+    { color: '#B4691E', label: 'No vigente / Cancelada' },
+    { color: '#A9812B', label: 'Orden de exploración' },
+  ],
+  ordenes: [
+    { color: '#A9812B', label: 'Orden de exploración' },
+  ],
+  areas_naturales: [
+    { color: '#1E7B4F', label: 'Reserva de Biosfera' },
+    { color: '#2F4858', label: 'Parque Nacional' },
+    { color: '#5B4E6E', label: 'Monumento Natural' },
+    { color: '#A9812B', label: 'Área de Protección' },
+    { color: '#1F6A5C', label: 'Santuario' },
+    { color: '#8E4458', label: 'Flora y Fauna' },
+  ],
+};
+
+const LeyendaMapa = ({ tipoElemento }) => {
+  const [abierta, setAbierta] = useState(true);
+  const items = LEYENDA_ITEMS[tipoElemento] || LEYENDA_ITEMS.concesiones;
+
+  return (
+    <>
+      <style>{`
+        .mapa-leyenda {
+          position: absolute; bottom: 26px; right: 16px; z-index: 12;
+          background: var(--superficie); border: 1px solid var(--hairline);
+          border-radius: var(--radio-md); box-shadow: var(--sombra-media);
+          min-width: 190px; max-width: 230px; overflow: hidden;
+          font-family: var(--fuente-ui);
+        }
+        .mapa-leyenda-toggle {
+          display: flex; align-items: center; justify-content: space-between; gap: 10px;
+          width: 100%; padding: 8px 12px; background: var(--acento-claro);
+          border: none; cursor: pointer; font-family: inherit;
+          font-size: 11px; font-weight: 700; color: var(--acento-oscuro);
+          text-transform: uppercase; letter-spacing: 0.08em;
+        }
+        .mapa-leyenda-toggle:hover { background: #E3E9ED; }
+        .mapa-leyenda-toggle svg { color: var(--acento); transition: transform 0.2s ease; flex-shrink: 0; }
+        .mapa-leyenda-toggle.abierta svg { transform: rotate(180deg); }
+        .mapa-leyenda-items {
+          padding: 9px 12px; display: flex; flex-direction: column; gap: 7px;
+          max-height: 190px; overflow-y: auto;
+        }
+        .mapa-leyenda-items::-webkit-scrollbar { width: 4px; }
+        .mapa-leyenda-items::-webkit-scrollbar-thumb { background: var(--hairline); border-radius: 4px; }
+        .mapa-leyenda-item {
+          display: flex; align-items: center; gap: 8px;
+          font-size: 12px; font-weight: 500; color: var(--tinta-1);
+        }
+        .mapa-leyenda-dot {
+          width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0;
+          box-shadow: 0 1px 3px rgba(32,36,46,0.25);
+        }
+        @media (max-width: 768px) {
+          .mapa-leyenda { right: 10px; bottom: 74px; min-width: 170px; }
+          .mapa-leyenda-item { font-size: 11px; }
+        }
+      `}</style>
+
+      <div className="mapa-leyenda">
+        <button
+          type="button"
+          className={`mapa-leyenda-toggle ${abierta ? 'abierta' : ''}`}
+          onClick={() => setAbierta(v => !v)}
+          aria-expanded={abierta}
+        >
+          <span>Leyenda</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+
+        {abierta && (
+          <div className="mapa-leyenda-items">
+            {items.map(item => (
+              <div key={item.label} className="mapa-leyenda-item">
+                <span className="mapa-leyenda-dot" style={{ background: item.color }} />
+                {item.label}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  );
 };
 
 // ============================================================================
@@ -199,7 +291,7 @@ const Mapa = memo(({
       type: 'fill',
       source: ANP_SOURCE_ID,
       'source-layer': ANP_SOURCE_LAYER,
-      paint: { 'fill-color': '#16a34a', 'fill-opacity': 0.18 }
+      paint: { 'fill-color': '#1E7B4F', 'fill-opacity': 0.18 }
     });
 
     mapa.current.addLayer({
@@ -207,7 +299,7 @@ const Mapa = memo(({
       type: 'line',
       source: ANP_SOURCE_ID,
       'source-layer': ANP_SOURCE_LAYER,
-      paint: { 'line-color': '#15803d', 'line-width': 1.8, 'line-opacity': 0.75 }
+      paint: { 'line-color': '#166534', 'line-width': 1.8, 'line-opacity': 0.75 }
     });
   }, []);
 
@@ -512,7 +604,12 @@ const Mapa = memo(({
     }
   }, [elementosFiltrados, onSeleccionarElemento, municipioSeleccionado, regionSeleccionada, terminoBusqueda]);
 
-  return <div ref={contenedorMapa} className="map-container" />;
+  return (
+    <>
+      <div ref={contenedorMapa} className="map-container" />
+      <LeyendaMapa tipoElemento={tipoElemento} />
+    </>
+  );
 });
 
 Mapa.displayName = 'Mapa';

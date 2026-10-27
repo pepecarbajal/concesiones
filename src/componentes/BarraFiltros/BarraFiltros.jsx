@@ -9,6 +9,7 @@ const BarraFiltros = memo(({
   municipioSeleccionado,
   filtroAnio,
   terminoBusqueda,
+  terminoBusquedaActivo,
   regionesDisponibles,
   municipiosDisponibles,
   aniosDisponibles,
@@ -19,6 +20,7 @@ const BarraFiltros = memo(({
   onCambiarBusqueda,
   onActivarBusqueda,
   onLimpiarBusqueda,
+  onLimpiarTodo,
   elementosFiltrados
 }) => {
   const manejarDescargaExcel = async () => {
@@ -36,6 +38,14 @@ const BarraFiltros = memo(({
       onActivarBusqueda();
     }
   };
+
+  const filtrosActivos = [
+    estadoSeleccionado   && { etiqueta: 'Estado',    valor: estadoSeleccionado,   limpiar: () => onCambiarEstado('') },
+    regionSeleccionada   && { etiqueta: 'Región',    valor: regionSeleccionada,   limpiar: () => onCambiarRegion('') },
+    municipioSeleccionado && { etiqueta: 'Municipio', valor: municipioSeleccionado, limpiar: () => onCambiarMunicipio('') },
+    filtroAnio           && { etiqueta: 'Año',       valor: filtroAnio,           limpiar: () => onCambiarAnio('') },
+    terminoBusquedaActivo && { etiqueta: 'Búsqueda',  valor: terminoBusquedaActivo, limpiar: onLimpiarBusqueda },
+  ].filter(Boolean);
 
   return (
     <div className={`filters-bar ${visible ? 'filters-visible' : 'filters-hidden'} ${!panelVisible ? 'filters-no-panel' : ''}`}>
@@ -75,6 +85,16 @@ const BarraFiltros = memo(({
             {aniosDisponibles.map(anio => (
               <option key={anio} value={anio}>{anio}</option>
             ))}
+          </select>
+
+          <select
+            value={estadoSeleccionado}
+            onChange={(e) => onCambiarEstado(e.target.value)}
+            className="filter-select filter-select-estado"
+          >
+            <option value="">Todos los estados</option>
+            <option value="Vigente">Vigente</option>
+            <option value="Cancelado">Cancelado</option>
           </select>
         </div>
 
@@ -127,6 +147,27 @@ const BarraFiltros = memo(({
           </button>
         </div>
       </div>
+
+      {filtrosActivos.length > 0 && (
+        <div className="filters-chips">
+          {filtrosActivos.map(filtro => (
+            <button
+              key={filtro.etiqueta}
+              type="button"
+              className="filter-chip"
+              onClick={filtro.limpiar}
+              title={`Quitar filtro: ${filtro.valor}`}
+            >
+              <span className="filter-chip-label">{filtro.etiqueta}</span>
+              <span className="filter-chip-valor">{filtro.valor}</span>
+              <span aria-hidden="true">✕</span>
+            </button>
+          ))}
+          <button type="button" className="filter-chip-limpiar" onClick={onLimpiarTodo}>
+            Limpiar todo
+          </button>
+        </div>
+      )}
     </div>
   );
 });

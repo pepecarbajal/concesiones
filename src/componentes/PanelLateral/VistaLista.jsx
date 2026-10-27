@@ -4,13 +4,13 @@ import ElementoLista from './componentes/ElementoLista';
 import { LIMITES_VISUALIZACION } from '../../utilidades/constantes';
 
 const CAT_INFO = {
-  'RB':   { nombre: 'Reserva de Biosfera',              color: '#16a34a' },
-  'PN':   { nombre: 'Parque Nacional',                  color: '#2563eb' },
-  'MN':   { nombre: 'Monumento Natural',                color: '#9333ea' },
-  'AP':   { nombre: 'Área de Protección',               color: '#d97706' },
-  'SANT': { nombre: 'Santuario',                        color: '#0d9488' },
-  'APFF': { nombre: 'Área de Protección de Flora y Fauna', color: '#0d9488' },
-  'FL':   { nombre: 'Área de Protección Flora y Fauna', color: '#db2777' },
+  'RB':   { nombre: 'Reserva de Biosfera',              color: '#1E7B4F' },
+  'PN':   { nombre: 'Parque Nacional',                  color: '#2F4858' },
+  'MN':   { nombre: 'Monumento Natural',                color: '#5B4E6E' },
+  'AP':   { nombre: 'Área de Protección',               color: '#A9812B' },
+  'SANT': { nombre: 'Santuario',                        color: '#1F6A5C' },
+  'APFF': { nombre: 'Área de Protección de Flora y Fauna', color: '#1F6A5C' },
+  'FL':   { nombre: 'Área de Protección Flora y Fauna', color: '#8E4458' },
 };
 
 const BtnPDFListaItem = memo(({ pdfUrl, nombreAnp }) => {
@@ -53,16 +53,16 @@ const ListaANP = memo(({ anps, onSeleccionar }) => {
         .anp-lista-pdf-btn {
           display: inline-flex; align-items: center; gap: 4px;
           padding: 4px 10px;
-          background: linear-gradient(135deg, #166534 0%, #15803d 100%);
+          background: #166534;
           color: white; border-radius: 6px; font-size: 11px; font-weight: 700;
           text-decoration: none; letter-spacing: 0.03em;
           transition: all 0.2s ease;
-          box-shadow: 0 2px 6px rgba(21, 128, 61, 0.25);
+          box-shadow: 0 2px 6px rgba(22, 101, 52, 0.25);
           flex-shrink: 0; white-space: nowrap;
         }
         .anp-lista-pdf-btn:hover {
-          background: linear-gradient(135deg, #14532d 0%, #166534 100%);
-          box-shadow: 0 3px 10px rgba(21, 128, 61, 0.4);
+          background: #14532d;
+          box-shadow: 0 3px 10px rgba(22, 101, 52, 0.4);
           transform: translateY(-1px);
         }
         .anp-item-footer {
@@ -153,17 +153,17 @@ const TIPO_HEADER = {
   concesiones:     {
     titulo: 'Concesiones Mineras',
     subtitulo: 'Estado de Guerrero',
-    gradiente: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    gradiente: '#2F4858',
   },
   ordenes:         {
     titulo: 'Órdenes de Exploración',
     subtitulo: 'Estado de Guerrero',
-    gradiente: 'linear-gradient(135deg, #3b6fd4 0%, #5b9cf6 100%)',
+    gradiente: '#3B5A6B',
   },
   areas_naturales: {
     titulo: 'Áreas Naturales Protegidas',
     subtitulo: 'Estado de Guerrero',
-    gradiente: 'linear-gradient(135deg, #166534 0%, #15803d 100%)',
+    gradiente: '#166534',
   },
 };
 
@@ -178,16 +178,19 @@ const VistaLista = memo(({
   totalConcesiones,
   totalOrdenes,
   totalANPs,
-  onMostrarEstadisticas
+  onMostrarEstadisticas,
+  hayFiltrosActivos,
+  onLimpiarFiltros
 }) => {
   const estadisticas = useMemo(() => {
-    const totalElementos    = elementos.length;
-    const municipiosUnicos  = new Set(elementos.map(e => e.municipio)).size;
-    const elementosVigentes = elementos.filter(e => e.estado === 'Vigente').length;
-    const superficieTotal   = elementos.reduce(
+    const totalElementos     = elementos.length;
+    const municipiosUnicos   = new Set(elementos.map(e => e.municipio)).size;
+    const elementosVigentes  = elementos.filter(e => e.estado === 'Vigente').length;
+    const elementosCancelados = elementos.filter(e => e.estado === 'Cancelado').length;
+    const superficieTotal    = elementos.reduce(
       (suma, e) => suma + parseFloat(e.superficie || 0), 0
     ).toFixed(0);
-    return { totalElementos, municipiosUnicos, elementosVigentes, superficieTotal };
+    return { totalElementos, municipiosUnicos, elementosVigentes, elementosCancelados, superficieTotal };
   }, [elementos]);
 
   const elementosMostrados = useMemo(() =>
@@ -236,31 +239,54 @@ const VistaLista = memo(({
       ) : (
         <div className="scrollable-content-list">
           <div className="stats-grid">
-            <TarjetaEstadistica icono="chart"    etiqueta="Total"      valor={estadisticas.totalElementos}    color="color-purple" />
-            <TarjetaEstadistica icono="building" etiqueta="Municipios" valor={estadisticas.municipiosUnicos}  color="color-violet" />
-            <TarjetaEstadistica icono="check"    etiqueta="Vigentes"   valor={estadisticas.elementosVigentes} color="color-green"  />
-            <TarjetaEstadistica icono="area"     etiqueta="Superficie" valor={`${estadisticas.superficieTotal} ha`} color="color-orange" pequeno />
+            <TarjetaEstadistica icono="chart"    etiqueta="Total"       valor={estadisticas.totalElementos}      color="color-purple" />
+            <TarjetaEstadistica icono="building" etiqueta="Municipios"  valor={estadisticas.municipiosUnicos}    color="color-violet" />
+            <TarjetaEstadistica icono="check"    etiqueta="Vigentes"    valor={estadisticas.elementosVigentes}   color="color-green"  />
+            <TarjetaEstadistica icono="x"        etiqueta="Cancelados"  valor={estadisticas.elementosCancelados}  color="color-red"    />
+            <TarjetaEstadistica icono="area"     etiqueta="Superficie"  valor={`${estadisticas.superficieTotal} ha`} color="color-orange" pequeno />
           </div>
           <div>
-            <h3 className="concesiones-list-header">
-              {estadisticas.totalElementos > 0
-                ? `Elementos visibles (${estadisticas.totalElementos})`
-                : 'No hay elementos que mostrar'}
-            </h3>
-            <div className="concesiones-list">
-              {elementosMostrados.map(elemento => (
-                <ElementoLista
-                  key={elemento.tipo === 'orden_exploracion' ? elemento.num_orden : elemento.titulo}
-                  elemento={elemento}
-                  onClick={manejarClickElemento}
-                />
-              ))}
-              {hayMasElementos && (
-                <div className="list-footer">
-                  Mostrando {LIMITES_VISUALIZACION.maximoElementosLista} de {estadisticas.totalElementos} elementos
+            {estadisticas.totalElementos > 0 ? (
+              <>
+                <h3 className="concesiones-list-header">
+                  Elementos visibles ({estadisticas.totalElementos})
+                </h3>
+                <div className="concesiones-list">
+                  {elementosMostrados.map(elemento => (
+                    <ElementoLista
+                      key={elemento.tipo === 'orden_exploracion' ? elemento.num_orden : elemento.titulo}
+                      elemento={elemento}
+                      onClick={manejarClickElemento}
+                    />
+                  ))}
+                  {hayMasElementos && (
+                    <div className="list-footer">
+                      Mostrando {LIMITES_VISUALIZACION.maximoElementosLista} de {estadisticas.totalElementos} elementos
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </>
+            ) : (
+              <div className="empty-state">
+                <div className="empty-state-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.35-4.35" />
+                    <line x1="8" y1="11" x2="14" y2="11" />
+                  </svg>
+                </div>
+                <h3>Sin resultados</h3>
+                <p>
+                  No se encontraron elementos con los filtros aplicados.
+                  <br />Prueba con otro término o revisa los filtros.
+                </p>
+                {hayFiltrosActivos && (
+                  <button type="button" className="empty-state-btn" onClick={onLimpiarFiltros}>
+                    Limpiar filtros
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

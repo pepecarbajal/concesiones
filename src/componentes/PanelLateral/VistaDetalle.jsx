@@ -122,12 +122,16 @@ const ContenidoConcesion = ({ concesion }) => (
       <FilaInformacion etiqueta="Municipio"  valor={concesion.municipio} />
       <FilaInformacion etiqueta="Region"     valor={concesion.region || 'N/A'} />
       <FilaInformacion etiqueta="Superficie" valor={concesion.superficie ? `${concesion.superficie} ha` : null} />
+      {concesion.duracion && <FilaInformacion etiqueta="Duracion" valor={`${concesion.duracion} años`} />}
     </div>
 
     <div className="dates-grid">
       <TarjetaFecha icono="calendar" etiqueta="Expedicion"  valor={concesion.fecha_expedicion || 'N/A'} />
       <TarjetaFecha icono="start"    etiqueta="Inicio"      valor={concesion.fecha_inicio     || 'N/A'} />
       <TarjetaFecha icono="end"      etiqueta="Vencimiento" valor={concesion.fecha_fin         || 'N/A'} />
+      {concesion.fecha_cancelacion && (
+        <TarjetaFecha icono="cancel" etiqueta="Cancelacion" valor={concesion.fecha_cancelacion} />
+      )}
     </div>
 
     <div style={{ marginTop: '24px' }}>

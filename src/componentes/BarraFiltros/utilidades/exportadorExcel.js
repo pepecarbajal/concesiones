@@ -88,7 +88,9 @@ const convertirConcesionAFila = (concesion) => {
     'Latitud': concesion.latitud || '',
     'Longitud': concesion.longitud || '',
     'Coordenadas Decimales': concesion.coords ? `${concesion.coords[1].toFixed(6)}, ${concesion.coords[0].toFixed(6)}` : '',
-    'Estado': concesion.estado || ''
+    'Estado': concesion.estado || '',
+    'Duración (años)': concesion.duracion || '',
+    'Fecha de Cancelación': concesion.fecha_cancelacion || ''
   };
 };
 
